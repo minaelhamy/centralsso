@@ -1,0 +1,86 @@
+<% layout('_layout.html') %>
+  <main class="main-content  mt-0">
+    <div class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg" style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg'); background-position: top;">
+      <span class="mask bg-gradient-dark opacity-6"></span>
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-5 text-center mx-auto">
+            <h1 class="text-white mb-2 mt-5"><%=it.siteName%></h1>
+            <p class="text-lead text-white"><%=it.title%></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container py-3">
+      <div class="row">
+        <div class="me-xl-auto col-xl-5 ms-4">
+          <div class="lc-block mb-4">
+            <div editable="rich">
+              <h2 class="display-5 fw-bold">Simple.</h2>
+              <h2 class="display-5 fw-bold">Secure.</h2>
+              <h2 class="display-5 fw-bold">Universal.</h2>
+            </div>
+            <p class="mt-4"><%=it.siteName%> is a centralized user management system that using Single Sign On (SSO) for authentication method.</p>
+            <p class="mt-4">Open SSO will give you a space to share about your public user information that used to surf the internet world.</p>
+          </div>
+        </div>
+        <div class="mx-auto col-xl-6">
+          <div class="lc-block d-sm-flex align-items-center mb-4">
+            <div class="lc-block rounded-circle d-flex justify-content-center align-items-center me-sm-3 mb-3 mb-sm-0  bg-light flex-shrink-0" style="width:64px;height:64px;">
+              <i class="fa fa-check"></i>
+            </div>
+            <div class="flex-grow-1" editable="rich">
+              <h3>Simple</h3>
+              <p class="text-muted">Just register to our system then you have a public user access to sign in everywhere.</p>
+            </div>
+          </div>
+          <div class="lc-block d-sm-flex align-items-center mb-4">
+            <div class="lc-block rounded-circle d-flex justify-content-center align-items-center me-sm-3 mb-3 mb-sm-0  bg-light flex-shrink-0" style="width:64px;height:64px;">
+              <i class="fa fa-check"></i>
+            </div>
+            <div class="flex-grow-1" editable="rich">
+              <h3>Secure</h3>
+              <p class="text-muted">We follow the JWT standard for Oauth 2.0 as describe in <a href="https://www.rfc-editor.org/rfc/rfc7519" target="_blank"><b>RFC7519</b></a> and <a href="https://datatracker.ietf.org/doc/html/rfc9068" target="_blank"><b>RFC9068</b></a>.</p>
+            </div>
+          </div>
+          <div class="lc-block d-sm-flex align-items-center">
+            <div class="lc-block rounded-circle d-flex justify-content-center align-items-center me-sm-3 mb-3 mb-sm-0  bg-light flex-shrink-0" style="width:64px;height:64px;">
+              <i class="fa fa-check"></i>
+            </div>
+            <div class="flex-grow-1" editable="rich">
+              <h3>Universal</h3>
+              <p class="text-muted">Only one public account but able to sign in everywhere.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container py-6">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <p align="justify"><b>Information:</b><br>
+                <%=it.siteName%> give you a limited space for your public user information. Your user profile actually shared to anywhere who use our SSO system only. <a href="/terms-and-conditions">Read more...</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <%~ includeFile('_footer.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      //
+    }
+  </script>

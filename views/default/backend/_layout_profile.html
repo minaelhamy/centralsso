@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="apple-touch-icon" sizes="76x76" href="/assets/default/img/apple-icon.png">
+  <link rel="icon" type="image/png" href="/assets/default/img/favicon.png">
+  <title><%=it.title%> - <%=it.siteName%></title>
+  <% if(it.meta_desc) { %>
+  <meta name="description" content="<%=it.meta_desc%>">
+  <% } %>
+  <%~ includeFile('_header.html', it) %> 
+</head>
+
+<body class="g-sidenav-show   bg-gray-100">
+  <div class="position-absolute w-100 min-height-300 top-0" style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/profile-layout-header.jpg'); background-position-y: 50%;">
+    <span class="mask bg-primary opacity-6"></span>
+  </div>
+  <%~ includeFile('_menu_aside.html', it) %>
+  <%~ it.body %>
+</body>
+
+</html>

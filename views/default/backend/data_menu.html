@@ -1,0 +1,675 @@
+<% layout('_layout.html') %>
+<main class="main-content position-relative border-radius-lg ">
+    <%~ includeFile('_navbar.html', it) %>
+    
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6><%=it.title%></h6>
+              <div id="message"></div>
+              <div class="row justify-content-between">
+                <div class="col-md-6">
+                  <button onclick="openModal('modalAdd')" class="btn btn-icon btn-3 btn-primary" type="button">
+                    <span class="btn-inner--icon"><i class="ni ni-fat-add"></i></span>
+                    <span class="btn-inner--text">Add</span>
+                  </button>
+                  <button onclick="exportData()" class="btn btn-icon btn-3 btn-primary" type="button">
+                    <span class="btn-inner--text">Export</span>
+                    <span class="btn-inner--icon ms-1"><i class="ni ni-cloud-download-95"></i></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div id="datatable"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <%~ includeFile('_footer.html', it) %>    
+    </div>
+  </main>
+
+  <!-- Modal Add Start -->
+  <div class="modal fade" id="modalAdd" tabindex="-1" aria-labelledby="modalAddLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAddLabel">Add Menu</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="add-message"></div>
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" class="form-control" id="name" placeholder="">
+            <small class="invalid-feedback" id="name-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="url">Url</label>
+            <input type="text" class="form-control" id="url" placeholder="">
+            <small class="invalid-feedback" id="url-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="icon">Icon</label>
+            <input type="text" class="form-control" id="icon" placeholder="">
+            <small class="invalid-feedback" id="icon-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="role">Role</label>
+            <input type="text" class="form-control" id="role" placeholder="">
+            <small class="invalid-feedback" id="role-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="group">Group</label>
+            <input type="text" class="form-control" id="group" placeholder="">
+            <small class="invalid-feedback" id="group-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="position">Position</label>
+            <input type="number" class="form-control" id="position" placeholder="">
+            <small class="invalid-feedback" id="position-error"></small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitAdd(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Add End -->
+
+  <!-- Modal Edit Start -->
+  <div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditLabel">Edit Menu</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="edit-message"></div>
+          <div class="form-group" hidden>
+            <label for="id-edit">ID</label>
+            <input type="text" class="form-control" id="id-edit" placeholder="">
+            <small class="invalid-feedback" id="id-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="name-edit">Name</label>
+            <input type="text" class="form-control" id="name-edit" placeholder="">
+            <small class="invalid-feedback" id="name-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="url-edit">Url</label>
+            <input type="text" class="form-control" id="url-edit" placeholder="">
+            <small class="invalid-feedback" id="url-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="icon-edit">Icon</label>
+            <input type="text" class="form-control" id="icon-edit" placeholder="">
+            <small class="invalid-feedback" id="icon-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="role-edit">Role</label>
+            <input type="text" class="form-control" id="role-edit" placeholder="">
+            <small class="invalid-feedback" id="role-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="group-edit">Group</label>
+            <input type="text" class="form-control" id="group-edit" placeholder="">
+            <small class="invalid-feedback" id="group-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="position-edit">Position</label>
+            <input type="number" class="form-control" id="position-edit" placeholder="">
+            <small class="invalid-feedback" id="position-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="status-edit">Status</label>
+            <select id="status-edit" class="form-control"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitEdit(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Edit End -->
+  <%~ includeFile('_global_modal.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    // Select Status
+    const datastatus = [
+      {id: 0, name: 'suspended'},
+      {id: 1, name: 'active'}
+    ];
+
+    let datatable = store({
+      list: [],
+      message: 'No records found.',
+      loadmore: 1
+    });
+
+    function datatableTemplate() {
+      var dom = `<div class="table-responsive p-0">
+        <table class="table align-items-center mb-0">
+          <thead>
+            <tr>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Name</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Url</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Icon</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Role</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Group</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Position</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Has Child</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Created at</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Modified at</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+              <th class="text-secondary opacity-7"></th>
+            </tr>
+          </thead>
+          <tbody>`;
+      if (datatable.list.length > 0) {
+        dom += `${datatable.list.map(function(item, index) {
+          return `<tr>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${item.name}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${item.url}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${item.icon}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${item.role}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${item.group}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${item.position}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${(item.child ? 'Yes' : 'No')}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${moment(item.created_at).format('YYYY-MM-DD HH:mm')}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${moment(item.modified_at).format('YYYY-MM-DD HH:mm')}</span>
+            </td>
+            <td class="align-middle text-center text-sm">
+              <div class="form-check form-switch justify-content-center">
+                <input class="form-check-input" type="checkbox" onclick="setStatus('${item.id}')" id="status-${item.id}" ${(item.status ? 'checked' : '')}>
+                <label class="form-check-label" for="status-${item.id}"></label>
+              </div>
+            </td>
+            <td class="align-middle">
+              <a href="javascript:;" title="Edit" onclick="openModal('modalEdit','${item.id}')" class="text-secondary font-weight-bold text-xs" style="cursor:pointer;">
+                <i class="fa fa-edit fa-2x"></i>
+              </a> | <a href="javascript:;" title="Delete" onclick="submitDelete('${item.id}')" class="text-secondary font-weight-bold text-xs" style="cursor:pointer;">
+                <i class="fa fa-trash-alt fa-2x text-danger"></i>
+              </a>
+            </td>
+          </tr>`;
+        }).join('')}`;
+      } else {
+        dom += `<tr>
+            <td colspan="100%">
+              <div class="text-center">
+                ${datatable.message}
+              </div>  
+            </td>
+          </tr>`;
+      }
+      dom += `</tbody>
+          </table>
+          <hr>
+        </div>`;
+      return dom;
+    }
+
+    component('#datatable', datatableTemplate, {events: true});
+    
+    function reload() {
+      datatable.list = [];
+      _ajax({
+        method: 'get',
+        url: '<% it.baseUrl %>/api/menu/parent/list',
+        headers: {
+          'content-type': 'application/json',
+          'x-token': getToken()
+        }
+      }, function(err, res) {
+        if(err) return console.log(err);
+        if(res && res.success) {
+          datatable.list = [...res.data];
+        }
+      });
+    }
+
+    // modal add
+    const modalAdd = new bootstrap.Modal(Dom.id('modalAdd'), {
+      keyboard: false
+    });
+    // modal edit
+    const modalEdit = new bootstrap.Modal(Dom.id('modalEdit'), {
+      keyboard: false
+    });
+
+    function openModal(name, param) {
+      switch (name) {
+        case 'modalAdd':
+          modalAdd.show();
+          cleanup('add');
+          break;
+        case 'modalEdit':
+          modalEdit.show();
+          cleanup('edit');
+          const list = getList(param);
+          if (list.length > 0) {
+            const item = list[0];
+            Dom.id('id-edit').value = item.id;
+            Dom.id('name-edit').value = item.name;
+            Dom.id('url-edit').value = item.url;
+            Dom.id('icon-edit').value = item.icon;
+            Dom.id('role-edit').value = item.role;
+            Dom.id('group-edit').value = item.group;
+            Dom.id('position-edit').value = item.position;
+            setSelectedOption('status-edit', 'value', item.status);
+          }
+          break;
+      }
+    }
+
+    function getList(id) {
+      const nosql = new FlyJson();
+      return nosql.set(datatable.list).where('id', '==', id).exec();
+    }
+
+    function cleanup(section) {
+      switch (section) {
+        case 'add':
+          Dom.id('name').value = '';
+          Dom.id('url').value = '';
+          Dom.id('icon').value = '';
+          Dom.id('role').value = '';
+          Dom.id('group').value = '';
+          Dom.id('position').value = '';
+          break;
+        case 'edit':
+          Dom.id('id-edit').value = '';
+          Dom.id('name-edit').value = '';
+          Dom.id('url-edit').value = '';
+          Dom.id('icon-edit').value = '';
+          Dom.id('role-edit').value = '';
+          Dom.id('group-edit').value = '';
+          Dom.id('position-edit').value = '';
+          break;
+          
+      }
+    }
+
+    function submitAdd(e) {
+      if(form1.validate().isValid()) {
+        e.disabled = true;
+        // code here
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/menu/parent/add',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            name: Dom.id('name').value,
+            url: Dom.id('url').value,
+            role: Dom.id('role').value,
+            position: Dom.id('position').value,
+            icon: Dom.id('icon').value,
+            group: Dom.id('group').value
+          }
+        }, function(err, res) {
+          e.disabled = false;
+          if(err) return sendAlert('add-message', 'danger', err);
+          if(res && res.success) {
+            cleanup('add');
+            sendAlert('add-message', 'success', res.message);
+            reload();
+            reloadMenu();
+          } else {
+            sendAlert('add-message', 'danger', res.message);
+          }
+        });
+      }
+    }
+
+    function submitEdit(e) {
+      if(form2.validate().isValid()) {
+        e.disabled = true;
+        // code here
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/menu/parent/update',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            id: Dom.id('id-edit').value,
+            name: Dom.id('name-edit').value,
+            url: Dom.id('url-edit').value,
+            role: Dom.id('role-edit').value,
+            position: Dom.id('position-edit').value,
+            icon: Dom.id('icon-edit').value,
+            group: Dom.id('group-edit').value,
+            status: getSelectedOption('status-edit').value
+          }
+        }, function(err, res) {
+          e.disabled = false;
+          if(err) return sendAlert('edit-message', 'danger', err);
+          if(res && res.success) {
+            sendAlert('edit-message', 'success', res.message);
+            reload();
+            reloadMenu();
+          } else {
+            sendAlert('edit-message', 'danger', res.message);
+          }
+        });
+      }
+    }
+
+    function submitDelete(id) {
+      confirmation('Are you sure?', 'Once it deleted, you can\'t get it back!', function () {
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/menu/parent/delete',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            id: id
+          }
+        }, function(err, res) {
+          if(err) return sendAlert('message', 'danger', err);
+          if(res && res.success) {
+            sendAlert('message', 'success', res.message);
+            reload();
+            reloadMenu();
+          } else {
+            sendAlert('message', 'danger', res.message);
+          }
+        });
+      });
+    }
+
+    function setStatus(id) {
+      _ajax({
+        method: 'post',
+        url: '<% it.baseUrl %>/api/menu/parent/set-status',
+        headers: {
+          'content-type': 'application/json',
+          'x-token': getToken()
+        },
+        data: {
+          id: id,
+          status: (Dom.id('status-'+id).checked ? 1 : 0)
+        }
+      }, function(err, res) {
+        if(err) {
+          sendAlert('message', 'danger', err);
+          Dom.id('status-'+id).checked = !Dom.id('status-'+id).checked;
+          return;
+        }
+        
+        if(res && res.success) {
+          reloadMenu();
+        } else {
+          sendAlert('message', 'danger', res.message);
+          Dom.id('status-'+id).checked = !Dom.id('status-'+id).checked;
+        }
+      });
+    }
+
+    // Export CSV
+    function _restructure(objData) {
+      var newdata = [];
+      newdata.push({
+        "No": "No",
+        "Name": "Name",
+        "Url": "Url",
+        "Icon": "Icon",
+        "role": "Role",
+        "Group": "Group",
+        "Position": "Position",
+        "Has Child": "Has Child",
+        "Status": "Status",
+        "Created at": "Created at",
+        "Modified at": "Modified at"
+      });
+      for (var i=0; i<objData.length;i++) {
+        newdata.push({
+          "No": (i+1),
+          "Name": objData[i].name,
+          "Url": objData[i].url,
+          "Icon": objData[i].icon,
+          "Role": objData[i].role,
+          "Group": objData[i].group,
+          "Position": objData[i].position,
+          "Has Child": (objData[i].child ? 'Yes' : 'No'),
+          "Status": (objData[i].status ?'Active':'Suspended'),
+          "Created at": moment(objData[i].created_at).format('DD-MM-YYYY HH:mm:ss'),
+          "Modified at": moment(objData[i].modified_at).format('DD-MM-YYYY HH:mm:ss')
+        });
+      }
+      return newdata;
+    }
+
+    function _convertToCSV(objArray) {
+      var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+      var str = '';
+
+      for (var i = 0; i < array.length; i++) {
+        var line = '';
+        for (var index in array[i]) {
+          if (line != '') line += ',';
+          line += JSON.stringify(array[i][index]);
+        }
+        str += line + '\r\n';
+      }
+
+      return str;
+    }
+
+    function exportData() {
+        _export_csv(datatable.list, 'Report_Menu_'+moment(Date.now()).format('YYYY-MM-DD')+'.csv');  
+    }
+    
+    function _export_csv(objData, filename) {
+        var csv_string = _convertToCSV(_restructure(objData));
+        var link = document.createElement('a');
+        link.style.display = 'none';
+        link.setAttribute('target', '_blank');
+        link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // validation
+    var form1 = new FormValidation();
+    form1.rules({
+      name: {
+        required:true,
+        message: 'Name must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'name-error',
+        errorAddClass: {
+          name:'is-invalid'
+        }
+      },
+      url: {
+        required:true,
+        message: 'Url must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'url-error',
+        errorAddClass: {
+          url:'is-invalid'
+        }
+      },
+      icon: {
+        required:true,
+        message: 'Icon must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'icon-error',
+        errorAddClass: {
+          icon:'is-invalid'
+        }
+      },
+      role: {
+        required:true,
+        message: 'Role must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'role-error',
+        errorAddClass: {
+          role:'is-invalid'
+        }
+      },
+      group: {
+        required:false,
+        message: 'Group must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'group-error',
+        errorAddClass: {
+          group:'is-invalid'
+        }
+      },
+      position: {
+        required:true,
+        message: 'Position must be min 1 digit!',
+        minLength: 1,
+        regex: /^[0-9]+$/,
+        errorPlace:'position-error',
+        errorAddClass: {
+          position:'is-invalid'
+        }
+      }
+    });
+
+    var form2 = new FormValidation();
+    form2.rules({
+      'name-edit': {
+        required:true,
+        message: 'Name must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'name-edit-error',
+        errorAddClass: {
+          'name-edit':'is-invalid'
+        }
+      },
+      'url-edit': {
+        required:true,
+        message: 'Url must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'url-edit-error',
+        errorAddClass: {
+          'url-edit':'is-invalid'
+        }
+      },
+      'icon-edit': {
+        required:true,
+        message: 'Icon must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'icon-edit-error',
+        errorAddClass: {
+          'icon-edit':'is-invalid'
+        }
+      },
+      'role-edit': {
+        required:true,
+        message: 'Role must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'role-edit-error',
+        errorAddClass: {
+          'role-edit':'is-invalid'
+        }
+      },
+      'group-edit': {
+        required:false,
+        message: 'Group must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'group-edit-error',
+        errorAddClass: {
+          'group-edit':'is-invalid'
+        }
+      },
+      'position-edit': {
+        required:true,
+        message: 'Position must be min 1 digit!',
+        minLength: 1,
+        regex: /^[0-9]+$/,
+        errorPlace:'position-edit-error',
+        errorAddClass: {
+          'position-edit':'is-invalid'
+        }
+      }
+    });
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      // fill the table
+      reload();
+
+      populateSelect('status-edit', datastatus, 'id', 'name');
+
+      // listen validation
+      Dom.addListener(Dom.id('name'), Dom.Event.ON_BLUR, function(e) {
+        form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('url'), Dom.Event.ON_BLUR, function(e) {
+          form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('icon'), Dom.Event.ON_BLUR, function(e) {
+          form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('role'), Dom.Event.ON_BLUR, function(e) {
+          form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('group'), Dom.Event.ON_BLUR, function(e) {
+          form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('position'), Dom.Event.ON_BLUR, function(e) {
+          form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('name-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('url-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('icon-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('role-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('group-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('position-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+    }
+  </script>

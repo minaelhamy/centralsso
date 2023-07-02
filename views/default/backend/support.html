@@ -1,0 +1,212 @@
+<% layout('_layout.html') %>
+<main class="main-content position-relative border-radius-lg ">
+    <%~ includeFile('_navbar.html', it) %>
+    
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>Support</h6>
+              <hr>
+            </div>
+            <div class="card-body px-4 pt-0 pb-2">
+              <div class="row">
+                <div class="col-lg-8 mb-2">
+                  <h6>Send Us Message</h6>
+                  <p class="mb-0">Feel free to leave a message to us.</p>
+                  <div id="message" class="mb-2"></div>
+                  <form role="form">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <input id="fullname" type="text" class="form-control form-control-lg" placeholder="Fullname" aria-label="Fullname" readonly>
+                          <small class="invalid-feedback" id="fullname-error"></small>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="mb-3" readonly>
+                          <input id="email" type="email" class="form-control form-control-lg" placeholder="Email" aria-label="Email" readonly>
+                          <small class="invalid-feedback" id="email-error"></small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <input id="subject" type="text" class="form-control form-control-lg" placeholder="Subject" aria-label="Subject">
+                      <small class="invalid-feedback" id="subject-error"></small>
+                    </div>
+                    <div class="mb-3">
+                      <textarea id="emessage" class="form-control form-control-lg" rows="3" placeholder="Message" aria-label="Message"></textarea>
+                      <small class="invalid-feedback" id="emessage-error"></small>
+                    </div>
+                    <div class="text-center">
+                      <button id="btnSubmit" onclick="submitMessage(this)" type="button" class="btn btn-lg btn-primary btn-lg w-100 mt-4 mb-0">Send Message</button>
+                    </div>
+                  </form>
+                </div>
+                <div class="col-lg-4">
+                  <p>
+                    <ul>
+                      <li class="mb-4">Please read our F.A.Q below before send us message. Maybe we already answer and explain about your question.</li>
+                      <li class="mb-4">We will going to response your message as fast as possible. But sometimes this process could take up to 2x24 hours.</li>
+                    </ul>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>F.A.Q</h6>
+              <hr>
+            </div>
+            <div class="card-body px-4 pt-0 pb-2">
+              <div class="col-lg-12">
+                <div id="data-faq"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <%~ includeFile('_footer.html', it) %>    
+    </div>
+  </main>
+  <style>
+    .accordion-button::after {
+      content: "^";
+    }
+  </style>
+  <%~ includeFile('_global_modal.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    let datafaq = store({
+      list: [],
+      message: 'No records found.'
+    });
+
+    function faqTemplate() {
+      var dom = '';
+      if(datafaq.list.length > 0) {
+        dom += `<div class="accordion" id="accordionExample">
+          ${datafaq.list.map(function(item, index) {
+            return `<div class="accordion-item">
+                <h2 class="accordion-header" id="heading${index}">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="true" aria-controls="collapse${index}">
+                    <b>${index+1}. ${item.question}</b>
+                  </button>
+                </h2>
+                <div id="collapse${index}" class="accordion-collapse collapse ${index===0?'show':''}" aria-labelledby="heading${index}" data-bs-parent="#accordionExample">
+                  <div class="accordion-body">
+                    ${item.answer.replace(/\n\n/g,'<br><br>')}
+                  </div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+      } else {
+        dom += '<p>'+datafaq.message+'</p>';
+      }
+      return dom;
+    }
+
+    component('#data-faq', faqTemplate, {events: true});
+
+    var form = new FormValidation();
+    form.rules({
+      subject: {
+        required:true,
+        message: 'Subject must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'subject-error',
+        errorAddClass: {
+          subject:'is-invalid'
+        }
+      },
+      emessage: {
+        required:true,
+        message: 'Message must be min 20 chars!',
+        regex: /^.{20,}$/s,
+        errorPlace:'emessage-error',
+        errorAddClass: {
+          emessage:'is-invalid'
+        }
+      }
+    });
+
+    function submitMessage(e) {
+      if(form.validate().isValid()) {
+        e.disabled = true;
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/sendmail',
+          headers: {'content-type': 'application/json'},
+          data: {
+            name: Dom.id('fullname').value,
+            email: Dom.id('email').value,
+            subject: Dom.id('subject').value,
+            message: Dom.id('emessage').value
+          }
+        }, function(err, data) {
+          e.disabled = false;
+          if(err) return sendAlert('message', 'danger', err);
+          if(data && data.success) {
+            sendAlert('message', 'success', data.message);
+            cleanup();
+          } else {
+            sendAlert('message', 'danger', data.message);
+          }
+        });
+      }
+    }
+
+    function cleanup() {
+      Dom.id('subject').value = '';
+      Dom.id('emessage').value = '';
+    }
+
+    function loadFAQ() {
+      _ajax({
+        method: 'get',
+        url: '<% it.baseUrl %>/api/faq/list',
+        headers: {'content-type': 'application/json'}
+      }, function(err, res) {
+        if(err) return console.log(err);
+        if(res && res.success) {
+          datafaq.list = [...res.data];
+        } else {
+          console.log(res.message);
+        }
+      });
+    }
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      loadFAQ();
+
+      var decoded = parseJWT(getToken());
+      if(decoded) {
+        Dom.id('fullname').value = (decoded.name ? decoded.name : decoded.unm);
+        Dom.id('email').value = decoded.mail;
+      }
+
+      Dom.addListener(Dom.id('subject'), Dom.Event.ON_BLUR, function(e) {
+        form.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('emessage'), Dom.Event.ON_BLUR, function(e) {
+          form.element(this.id).validate();
+      });
+    }
+  </script>
+  <% if (it.useMailer === false) { %>
+    <script>
+      sendAlert('message', 'warning', 'Sorry, Currently we disabled this contact form for temporary.');
+    </script>
+  <% } %>

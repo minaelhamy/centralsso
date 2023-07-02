@@ -1,0 +1,29 @@
+stages:
+  - node10
+  - latest
+
+cache:
+  paths:
+    - node_modules/
+
+node_10:
+  stage: node10
+  image: node:10
+  script: 
+    - npm install
+    - npm test
+  artifacts:
+    paths:
+      - coverage
+  coverage: /Statements\s+:\s(\d+.?\d+)%/
+
+node_latest:
+  stage: latest
+  image: node:latest
+  script: 
+    - npm install
+    - npm test
+  artifacts:
+    paths:
+      - coverage
+  coverage: /Statements\s+:\s(\d+.?\d+)%/

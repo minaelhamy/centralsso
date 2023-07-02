@@ -1,0 +1,74 @@
+<% layout('_layout.html') %>
+<main class="main-content  mt-0">
+    <section>
+      <% if(it.valid) { %>
+        <div class="page-header min-vh-100">
+      <% } else { %>
+        <div class="page-header min-vh-50">
+      <% } %>
+        <div class="container">
+          <div class="row justify-content-around">
+            <div class="col-lg-6">
+              <div class="card card-plain">
+                <% if(it.valid) { %>
+                <div class="card-header pb-0 text-center">
+                  <h4 class="font-weight-bolder">User Activation</h4>
+                  <p class="mb-0">Click button below to activate your account.</p>
+                </div>
+                <div class="card-body">
+                  <div id="message"></div>
+                  <form role="form">
+                    <div class="text-center">
+                      <button id="btnSubmit" onclick="submitActivate(this)" type="button" class="btn btn-lg btn-primary btn-lg w-100 mt-4 mb-0">Activate Now</button>
+                    </div>
+                  </form>
+                </div>
+                <% } else { %>
+                  <div class="alert alert-danger alert-dismissible fade show text-white" role="alert"><%=it.message%></div>
+                <% } %>
+                <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                  <p class="mb-4 text-sm mx-auto">
+                    <a href="/sign-in" class="text-primary text-gradient font-weight-bold">Sign in now</a> | 
+                    <a href="/" class="text-primary text-gradient font-weight-bold">Back to home</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+
+    function submitActivate(e) {
+      e.disabled = true;
+      _ajax({
+        method: 'post',
+        url: '<% it.baseUrl %>/api/user/activation',
+        headers: {'content-type': 'application/json'},
+        data: {
+          id: '<%=it.user_id%>'
+        }
+      }, function(err, data) {
+        e.disabled = false;
+        if(err) return sendAlert('message', 'danger', err);
+        if(data && data.success) {
+          sendAlert('message', 'success', data.message);
+          e.style.display = 'none';
+        } else {
+          sendAlert('message', 'danger', data.message);
+        }
+      });
+    }
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      // 
+    }
+  </script>

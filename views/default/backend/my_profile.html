@@ -1,0 +1,289 @@
+<% layout('_layout_profile.html') %>
+  <div class="main-content position-relative max-height-vh-100 h-100">
+    <%~ includeFile('_navbar_profile.html', it) %>
+    
+    <div class="card shadow-lg mx-4 card-profile-bottom">
+      <div class="card-body p-3">
+        <div class="row gx-4">
+          <div class="col-auto">
+            <div class="avatar avatar-xl position-relative">
+              <img id="mp-profil-pic" src="/assets/default/img/default-user.png" alt="profile_image" class="w-100 border-radius-lg shadow-sm">
+            </div>
+          </div>
+          <div class="col-auto my-auto">
+            <div class="h-100">
+              <h5 class="mb-1">
+                <span id="mp-display-name">User</span>
+              </h5>
+              <p class="mb-0 font-weight-bold text-sm">
+                <span id="mp-display-email">...</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div id="message"></div>
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header pb-0">
+              <div class="d-flex align-items-center">
+                <p class="mb-0">My Profile</p>
+                <span id="mp-role" class="badge bg-gradient-success ms-auto">Member</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <p class="text-uppercase text-sm">User Information</p>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mp-username" class="form-control-label">Username</label>
+                    <input id="mp-username" class="form-control" type="text" value="" readonly>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mp-email" class="form-control-label">Email address</label>
+                    <input id="mp-email" class="form-control" type="email" placeholder="your.email@example.com">
+                    <small class="invalid-feedback" id="mp-email-error"></small>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mp-fullname" class="form-control-label">Fullname</label>
+                    <input id="mp-fullname" class="form-control" type="text" placeholder="your fullname">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mp-phone" class="form-control-label">Phone</label>
+                    <input id="mp-phone" class="form-control" type="text" placeholder="+620819xxxx">
+                  </div>
+                </div>
+              </div>
+              <hr class="horizontal dark">
+              <p class="text-uppercase text-sm">Contact Information</p>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label for="mp-address" class="form-control-label">Address</label>
+                    <input id="mp-address" class="form-control" type="text" placeholder="your address here...">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="mp-city" class="form-control-label">City</label>
+                    <input id="mp-city" class="form-control" type="text" placeholder="city name...">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="mp-country" class="form-control-label">Country</label>
+                    <input id="mp-country" class="form-control" type="text" placeholder="country name...">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="mp-postal-code" class="form-control-label">Postal code</label>
+                    <input id="mp-postal-code" class="form-control" type="number" placeholder="000000">
+                  </div>
+                </div>
+              </div>
+              <hr class="horizontal dark">
+              <p class="text-uppercase text-sm">About me</p>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label for="example-text-input" class="form-control-label">About me</label>
+                    <textarea id="mp-about-me" rows="3" class="form-control" type="text" placeholder="Describe about yourself here..."></textarea>
+                  </div>
+                </div>
+              </div>
+              <hr>
+              <div class="row text-center">
+                <div class="col-md-6">
+                  <button onclick="submitUpdate(this)" class="btn btn-sm btn-outline-success">Update Profile</button>
+                </div>
+                <div class="col-md-6">
+                  <button onclick="submitSuspend(this)" class="btn btn-sm btn-outline-danger">Delete Account</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-profile">
+            <img src="/assets/default/img/bg-profile.jpg" alt="Image placeholder" class="card-img-top">
+            <div class="row justify-content-center">
+              <div class="col-4 col-lg-4 order-lg-2">
+                <div class="mt-n4 mt-lg-n6 mb-4 mb-lg-0">
+                  <a href="javascript:;">
+                    <img id="badge-profil-pic" width="200px" height="200px" src="/assets/default/img/default-user.png" class="rounded-circle img-fluid border border-2 border-white">
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="card-body pt-0">
+              <div class="text-center mt-4">
+                <h5>
+                  <span id="badge-name"></span><br>
+                  <span id="badge-phone" class="font-weight-light text-sm"></span>
+                </h5>
+                <div class="h6 font-weight-300">
+                  <i class="ni location_pin mr-2"></i><span id="badge-location"></span>
+                </div>
+                <hr>
+                <div>
+                  <i class="ni education_hat mr-2"></i><span id="badge-about"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <%~ includeFile('_footer.html', it) %>
+    </div>
+  </div>
+
+  <!-- Modal Edit End -->
+  <%~ includeFile('_global_modal.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    function getProfile() {
+      _ajax({
+        method: 'post',
+        url: '<% it.baseUrl %>/api/user/my-profile',
+        headers: {
+          'content-type': 'application/json',
+          'x-token': getToken()
+        }
+      }, function(err, res) {
+        if(err) return sendAlert('message', 'danger', err);
+        if(res && res.success) {
+          var item = res.data;
+          if(item.service !== 'internal') {
+            Dom.id('nav-change-pass').style.display = 'none';
+            Dom.id('mp-email').disabled = true;
+          }
+          Dom.id('mp-username').value = safeReturn(item.username);
+          Dom.id('mp-email').value = safeReturn(item.email);
+          Dom.id('mp-fullname').value = safeReturn(item.fullname);
+          if(item.data) {
+            Dom.id('mp-phone').value = safeReturn(item.data.phone);
+            Dom.id('mp-address').value = safeReturn(item.data.address);
+            Dom.id('mp-city').value = safeReturn(item.data.city);
+            Dom.id('mp-country').value = safeReturn(item.data.country);
+            Dom.id('mp-postal-code').value = safeReturn(item.data.postal_code);
+            Dom.id('mp-about-me').value = safeReturn(item.data.about_me);
+            Dom.id('badge-phone').innerHTML = safeReturn(item.data.phone);
+            Dom.id('badge-location').innerHTML = (safeReturn(item.data.city) !== '' ? safeReturn(item.data.city)+', '+ safeReturn(item.data.country) : '');
+            Dom.id('badge-about').innerHTML = safeReturn(item.data.about_me);
+          }
+          Dom.id('mp-profil-pic').src = item.gravatar;
+          Dom.id('mp-display-name').innerHTML = item.fullname ? item.fullname : item.username;
+          Dom.id('mp-display-email').innerHTML = item.email;
+          Dom.id('mp-role').innerHTML = item.role;
+          Dom.id('badge-profil-pic').src = item.gravatar;
+          Dom.id('badge-name').innerHTML = item.fullname ? item.fullname : item.username;
+        } else {
+          sendAlert('message', 'danger', res.message);
+        }
+      });
+    }
+
+    function submitUpdate(e) {
+      e.disabled = true;
+      _ajax({
+        method: 'post',
+        url: '<% it.baseUrl %>/api/user/my-profile/update',
+        headers: {
+          'content-type': 'application/json',
+          'x-token': getToken()
+        },
+        data: {
+          username: Dom.id('mp-username').value,
+          fullname: Dom.id('mp-fullname').value,
+          email: Dom.id('mp-email').value,
+          data: {
+            phone: Dom.id('mp-phone').value,
+            address: Dom.id('mp-address').value,
+            city: Dom.id('mp-city').value,
+            country: Dom.id('mp-country').value,
+            postal_code: Dom.id('mp-postal-code').value,
+            about_me: Dom.id('mp-about-me').value
+          }
+        }
+      }, function(err, res) {
+        e.disabled = false;
+        if(err) return sendAlert('message', 'danger', err);
+        if(res && res.success) {
+          sendAlert('message', 'success', res.message);
+          getProfile();
+        }
+      });
+    }
+
+    function submitSuspend(e) {
+      confirmation('Are you sure?', 'Once it deleted, you can\'t get it back!', function () {
+        e.disabled = true;
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/user/my-profile/suspend',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            username: Dom.id('mp-username').value
+          }
+        }, function(err, res) {
+          e.disabled = false;
+          if(err) return sendAlert('message', 'danger', err);
+          if(res && res.success) {
+            logout();
+          }
+        });
+      });
+    }
+
+    function safeReturn(value) {
+      return value ? value : '';
+    }
+
+    function checkEmail(email) {
+      if(email !== Dom.id('mp-display-email').innerHTML.trim()) {
+        _ajax({
+          method: 'get',
+          url: '<% it.baseUrl %>/api/user/check-email/'+email
+        }, function(err, res) {
+          if (err) return console.log(err);
+          if(res.statusCode === 200) {
+            if(res.data.total) {
+              setInvalid('mp-email', true, res.message);
+            } else {
+              setInvalid('mp-email', false);
+            }
+          }
+        });     
+      } else {
+        setInvalid('mp-email', false);
+      }
+    }
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      // code here
+      getProfile();
+      Dom.addListener(Dom.id('mp-email'), Dom.Event.ON_BLUR, function(e) {
+        if (this.value.trim().length > 2) {
+          checkEmail(this.value.trim());
+        }
+      });
+    }
+  </script>

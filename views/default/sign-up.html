@@ -1,0 +1,176 @@
+<% layout('_layout.html') %>
+<main class="main-content  mt-0">
+    <div class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg" style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/signup-cover.jpg'); background-position: top;">
+      <span class="mask bg-gradient-dark opacity-6"></span>
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-5 text-center mx-auto">
+            <h1 class="text-white mb-2 mt-5">Welcome!</h1>
+            <p class="text-lead text-white">Use these awesome forms to login or create new account for free.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row mt-lg-n10 mt-md-n11 mt-n10 justify-content-center">
+        <div class="col-xl-4 col-lg-5 col-md-7 mx-auto">
+          <div class="card z-index-0">
+            <div class="card-header text-center pt-4">
+              <h5>Register</h5>
+            </div>
+            <div class="card-body">
+              <div id="message"></div>
+              <form role="form">
+                <div class="mb-3">
+                  <input id="username" type="text" class="form-control" placeholder="Username" aria-label="Username">
+                  <small class="invalid-feedback" id="username-error"></small>
+                </div>
+                <div class="mb-3">
+                  <input id="email" type="email" class="form-control" placeholder="Email" aria-label="Email">
+                  <small class="invalid-feedback" id="email-error"></small>
+                </div>
+                <div class="mb-3">
+                  <input id="password" type="password" class="form-control" placeholder="Password" aria-label="Password">
+                  <small class="invalid-feedback" id="password-error"></small>
+                </div>
+                <div class="form-check form-check-info text-start">
+                  <input class="form-check-input" type="checkbox" id="agreecheck">
+                  <label class="form-check-label" for="agreecheck">
+                    I agree the <a href="/terms-and-conditions" class="text-dark font-weight-bolder">Terms and Conditions</a>
+                  </label>
+                  <small class="invalid-feedback" id="agreecheck-error"></small>
+                </div>
+                <div class="text-center">
+                  <button onclick="submitRegister(this)" type="button" class="btn bg-gradient-dark w-100 my-4 mb-2">Sign up</button>
+                </div>
+                <p class="text-sm mt-3 mb-0">Already have an account? <a href="/sign-in" class="text-dark font-weight-bolder">Sign in</a></p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <%~ includeFile('_footer.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    var form = new FormValidation();
+    form.rules({
+      username: {
+        required:true,
+        message: 'Username must be alphanumeric & lowercase min 3-20 chars!',
+        minLength: 3,
+        maxLength: 20,
+        regex: /^[a-z0-9]+$/,
+        errorPlace:'username-error',
+        errorAddClass: {
+          username:'is-invalid'
+        }
+      },
+      password: {
+        required: true,
+        message: 'Password must be min 6-20 chars!',
+        minLength:6,
+        maxLength:20,
+        errorPlace:'password-error',
+        errorAddClass: {
+          password:'is-invalid'
+        }
+      },
+      email: {
+        required:true,
+        message: 'Wrong email format!',
+        regex: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/,
+        errorPlace:'email-error',
+        errorAddClass: {
+          email:'is-invalid'
+        }
+      },
+      agreecheck: {
+        message: 'You should agree with our terms!',
+        method: function(element) {
+          return element.checked;
+        },
+        errorPlace:'agreecheck-error',
+        errorAddClass: {
+          agreecheck:'is-invalid'
+        }
+      }
+    });
+
+    function submitRegister(e) {
+      if(form.validate().isValid()) {
+        e.disabled = true;
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/user/register',
+          headers: {'content-type': 'application/json'},
+          data: {
+            username: Dom.id('username').value,
+            email: Dom.id('email').value,
+            password: Dom.id('password').value
+          }
+        }, function(err, data) {
+          e.disabled = false;
+          if(err) return sendAlert('message', 'danger', err);
+          if(data && data.success) {
+            sendAlert('message', 'success', data.message);
+            cleanup();
+          } else {
+            sendAlert('message', 'danger', data.message);
+          }
+        });
+      }
+    }
+
+    function checkUsername(username) {
+      _ajax({
+        method: 'get',
+        url: '<% it.baseUrl %>/api/user/check-username/'+username
+      }, function(err, res) {
+        if (err) return console.log(err);
+        if(res.statusCode === 200) {
+          if(res.data.total) {
+            setInvalid('username', true, res.message);
+          }
+        }
+      });
+    }
+
+    function cleanup() {
+      Dom.id('username').value = '';
+      Dom.id('email').value = '';
+      Dom.id('password').value = '';
+    }
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      Dom.addListener(Dom.id('username'), Dom.Event.ON_KEYUP, delay(function(e) {
+        if (this.value.trim().length > 2) {
+          checkUsername(this.value.trim());
+        }
+      },3000));
+      Dom.addListener(Dom.id('username'), Dom.Event.ON_BLUR, function(e) {
+        form.element(this.id).validate();
+        if (this.value.trim().length > 2) {
+          checkUsername(this.value.trim());
+        }
+      });
+      Dom.addListener(Dom.id('email'), Dom.Event.ON_BLUR, function(e) {
+          form.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('password'), Dom.Event.ON_BLUR, function(e) {
+          form.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('agreecheck'), Dom.Event.ON_BLUR, function(e) {
+          form.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('agreecheck'), Dom.Event.ON_CHANGE, function(e) {
+          form.element(this.id).validate();
+      });
+    }
+  </script>

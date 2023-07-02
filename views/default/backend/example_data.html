@@ -1,0 +1,456 @@
+<% layout('_layout.html') %>
+<main class="main-content position-relative border-radius-lg ">
+    <%~ includeFile('_navbar.html', it) %>
+    
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>Authors table</h6>
+              <div id="message"></div>
+              <div class="row justify-content-between">
+                <div class="col-md-6">
+                  <button onclick="openModal('modalAdd')" class="btn btn-icon btn-3 btn-primary" type="button">
+                    <span class="btn-inner--icon"><i class="ni ni-fat-add"></i></span>
+                    <span class="btn-inner--text">Add</span>
+                  </button>
+                  <button onclick="exportData()" class="btn btn-icon btn-3 btn-primary" type="button">
+                    <span class="btn-inner--text">Export</span>
+                    <span class="btn-inner--icon ms-1"><i class="ni ni-cloud-download-95"></i></span>
+                  </button>
+                </div>
+                <div class="col-md-6">
+                  <div class="row justify-content-end">
+                    <div class="col-md-5">
+                      <div class="form-group">
+                        <div class="input-group mb-4">
+                          <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
+                          <input class="form-control" placeholder="Search" type="text">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div id="datatable"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <%~ includeFile('_footer.html', it) %>    
+    </div>
+  </main>
+
+  <!-- Modal Add Start -->
+  <div class="modal fade" id="modalAdd" tabindex="-1" aria-labelledby="modalAddLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAddLabel">Add Data</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="add-message"></div>
+          <div class="form-group">
+            <label for="fullname">Fullname</label>
+            <input type="text" class="form-control" id="fullname" placeholder="">
+            <small class="invalid-feedback" id="fullname-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="text" class="form-control" id="email" placeholder="">
+            <small class="invalid-feedback" id="email-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea rows="3" class="form-control" id="description"></textarea>
+            <small class="invalid-feedback" id="description-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="Role">Role</label>
+            <select id="role" class="form-control"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitAdd(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Add End -->
+
+  <!-- Modal Edit Start -->
+  <div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditLabel">Edit Data</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="edit-message"></div>
+          <div class="form-group">
+            <label for="fullname-edit">Fullname</label>
+            <input type="text" class="form-control" id="fullname-edit" placeholder="">
+            <small class="invalid-feedback" id="fullname-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="email-edit">Email</label>
+            <input type="text" class="form-control" id="email-edit" placeholder="">
+            <small class="invalid-feedback" id="email-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="description-edit">Description</label>
+            <textarea rows="3" class="form-control" id="description-edit"></textarea>
+            <small class="invalid-feedback" id="description-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="role-edit">Role</label>
+            <select id="role-edit" class="form-control"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitEdit(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Edit End -->
+  <%~ includeFile('_global_modal.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+
+    // ---
+    // Example Data START
+    // ---
+    // Table
+    const datalist = [
+      {gravatar: '/assets/default/img/team-1.jpg', username: 'john', fullname: 'John Michael', email: 'john@creative-tim.com', description: '', role: 'admin', status: 1, created_at: 1654173404105},
+      {gravatar: '/assets/default/img/team-2.jpg', username: 'alexa', fullname: null, email: 'alexa@creative-tim.com', description: '', role: 'member', status: 1, created_at: 1654173404105},
+      {gravatar: '/assets/default/img/team-3.jpg', username: 'laurent', fullname: 'Laurent Perrier', email: 'laurent@creative-tim.com', description: '', role: 'member', status: 0, created_at: 1654173404105},
+      {gravatar: '/assets/default/img/team-4.jpg', username: 'michael', fullname: 'Michael Levi', email: 'michael@creative-tim.com', description: '', role: 'member', status: 1, created_at: 1654173404105},
+      {gravatar: '/assets/default/img/marie.jpg', username: 'marie', fullname: 'Marie Diana', email: 'marie@creative-tim.com', description: '', role: 'member', status: 0, created_at: 1654173404105}
+    ];
+
+    // Select Role
+    const datarole = [
+      {id: 1, name: 'admin'},
+      {id: 2, name: 'member'},
+    ];
+    // ---
+    // Example Data END
+    // ---
+
+    let datatable = store({
+      list: [],
+      message: 'No records found.',
+      loadmore: 1,
+      totalRecord: 0
+    });
+
+    function datatableTemplate() {
+      var dom = `<div class="table-responsive p-0">
+        <table class="table align-items-center mb-0">
+          <thead>
+            <tr>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">User</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Role</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Created at</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+              <th class="text-secondary opacity-7"></th>
+            </tr>
+          </thead>
+          <tbody>`;
+      if (datatable.list.length > 0) {
+        dom += `${datatable.list.map(function(item, index) {
+          return `<tr>
+            <td>
+              <div class="d-flex px-2 py-1">
+                <div>
+                  <img src="${item.gravatar}" class="avatar avatar-sm me-3" alt="${(item.fullname ? item.fullname : item.username)}">
+                </div>
+                <div class="d-flex flex-column justify-content-center">
+                  <h6 class="mb-0 text-sm">${(item.fullname ? item.fullname : item.username)}</h6>
+                  <p class="text-xs text-secondary mb-0">${item.email}</p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <p class="text-sm font-weight-bold mb-0">
+                <span class="badge badge-sm bg-gradient-${(item.role === 'admin' ? 'dark': 'primary')}">
+                  ${item.role}
+                </span>
+              </p>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${moment(item.created_at).format('YYYY-MM-DD HH:mm')}</span>
+            </td>
+            <td class="align-middle text-center text-sm">
+              <div class="form-check form-switch justify-content-center">
+                <input class="form-check-input" type="checkbox" id="status-${item.username}" ${(item.status ? 'checked' : '')}>
+                <label class="form-check-label" for="status-${item.username}"></label>
+              </div>
+            </td>
+            <td class="align-middle">
+              <a href="javascript:;" title="Edit" onclick="openModal('modalEdit','${item.id}')" class="text-secondary font-weight-bold text-xs" style="cursor:pointer;">
+                <i class="fa fa-edit fa-2x"></i>
+              </a> | <a href="javascript:;" title="Delete" onclick="submitDelete('${item.id}')" class="text-secondary font-weight-bold text-xs" style="cursor:pointer;">
+                <i class="fa fa-trash-alt fa-2x text-danger"></i>
+              </a>
+            </td>
+          </tr>`;
+        }).join('')}`;
+      } else {
+        dom += `<tr>
+            <td colspan="100%">
+              <div class="text-center">
+                ${datatable.message}
+              </div>  
+            </td>
+          </tr>`;
+      }
+      dom += `</tbody>
+          </table>
+          <hr>
+          <div class="col-md-12 text-center">
+            <p class="text-sm">Total records found: ${datatable.totalRecord}</p>
+          ${datatable.loadmore > 0 ? '<button class="btn btn-sm btn-outline-primary">Loadmore</button>' : ''}
+          </div>
+        </div>`;
+      return dom;
+    }
+
+    component('#datatable', datatableTemplate, {events: true});
+    
+    // modal add
+    const modalAdd = new bootstrap.Modal(Dom.id('modalAdd'), {
+      keyboard: false
+    });
+    // modal edit
+    const modalEdit = new bootstrap.Modal(Dom.id('modalEdit'), {
+      keyboard: false
+    });
+
+    function openModal(name, param) {
+      switch (name) {
+        case 'modalAdd':
+          modalAdd.show();
+          cleanup('add');
+          break;
+        case 'modalEdit':
+          modalEdit.show();
+          cleanup('edit');
+          const list = getList(param);
+          if (list.length > 0) {
+            const item = list[0];
+            Dom.id('fullname-edit').value = item.fullname;
+            Dom.id('email-edit').value = item.email;
+            Dom.id('description-edit').value = item.description;
+            setSelectedOption('role-edit', 'text', item.role);
+          }
+          break;
+      }
+    }
+
+    function getList(id) {
+      const nosql = new FlyJson();
+      return nosql.set(datalist).where('username', '==', id).exec();
+    }
+
+    function cleanup(section) {
+      switch (section) {
+        case 'add':
+          Dom.id('add-message').innerHTML = '';
+          Dom.id('fullname').value = '';
+          Dom.id('email').value = '';
+          Dom.id('description').value = '';
+          break;
+        case 'edit':
+          Dom.id('edit-message').innerHTML = '';
+          Dom.id('fullname-edit').value = '';
+          Dom.id('email-edit').value = '';
+          Dom.id('description-edit').value = '';
+          break;
+          
+      }
+    }
+
+    function submitAdd(e) {
+      if(form1.validate().isValid()) {
+        e.disabled = true;
+        // code here
+        cleanup('add');
+        sendAlert('add-message', 'success', 'Add data successfully!');
+        e.disabled = false;
+      }
+    }
+
+    function submitEdit(e) {
+      if(form2.validate().isValid()) {
+        e.disabled = true;
+        // code here
+        sendAlert('edit-message', 'success', 'Edit data successfully!');
+        e.disabled = false;
+      }
+    }
+
+    // Export CSV
+    function _restructure(objData) {
+      var newdata = [];
+      newdata.push({
+        "No": "No",
+        "Username": "Username",
+        "Fullname": "Fullname",
+        "Email": "Email",
+        "Role": "Role",
+        "Status": "Status",
+        "Created at": "Created at"
+      });
+      for (var i=0; i<objData.length;i++) {
+        newdata.push({
+          "No": (i+1),
+          "Username": objData[i].username,
+          "Fullname": (objData[i].fullname?objData[i].fullname:objData[i].username),
+          "Email": objData[i].email,
+          "Role": objData[i].role,
+          "Status": (objData[i].status ?'active':'suspended'),
+          "Created at": moment(objData[i].created_at).format('DD-MM-YYYY HH:mm:ss')
+        });
+      }
+      return newdata;
+    }
+
+    function _convertToCSV(objArray) {
+      var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+      var str = '';
+
+      for (var i = 0; i < array.length; i++) {
+        var line = '';
+        for (var index in array[i]) {
+          if (line != '') line += ',';
+          line += JSON.stringify(array[i][index]);
+        }
+        str += line + '\r\n';
+      }
+
+      return str;
+    }
+
+    function exportData() {
+        _export_csv(datalist, 'ExampleData_'+moment(Date.now()).format('YYYY-MM-DD')+'.csv');  
+    }
+    
+    function _export_csv(objData, filename) {
+        var csv_string = _convertToCSV(_restructure(objData));
+        var link = document.createElement('a');
+        link.style.display = 'none';
+        link.setAttribute('target', '_blank');
+        link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // validation
+    var form1 = new FormValidation();
+    form1.rules({
+      fullname: {
+        required:true,
+        message: 'Fullname must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'fullname-error',
+        errorAddClass: {
+          fullname:'is-invalid'
+        }
+      },
+      email: {
+        required: true,
+        message: 'Wrong format email!',
+        regex: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/,
+        errorPlace:'email-error',
+        errorAddClass: {
+          email:'is-invalid'
+        }
+      },
+      description: {
+        required:false,
+        message: 'Description must be min 20 chars!',
+        regex: /^.{20,}$/s,
+        errorPlace:'description-error',
+        errorAddClass: {
+          description:'is-invalid'
+        }
+      }
+    });
+
+    var form2 = new FormValidation();
+    form2.rules({
+      'fullname-edit': {
+        required:true,
+        message: 'Fullname must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'fullname-edit-error',
+        errorAddClass: {
+          'fullname-edit':'is-invalid'
+        }
+      },
+      'email-edit': {
+        required: true,
+        message: 'Wrong format email!',
+        regex: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/,
+        errorPlace:'email-edit-error',
+        errorAddClass: {
+          'email-edit':'is-invalid'
+        }
+      },
+      'description-edit': {
+        required:false,
+        message: 'Description must be min 20 chars!',
+        regex: /^.{20,}$/s,
+        errorPlace:'description-edit-error',
+        errorAddClass: {
+          'description-edit':'is-invalid'
+        }
+      }
+    });
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      // fill the table
+      datatable.list = [...datalist];
+      
+      // fill the select options
+      populateSelect('role', datarole, 'id', 'name');
+      populateSelect('role-edit', datarole, 'id', 'name');
+
+      // listen validation
+      Dom.addListener(Dom.id('fullname'), Dom.Event.ON_BLUR, function(e) {
+        form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('email'), Dom.Event.ON_BLUR, function(e) {
+          form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('description'), Dom.Event.ON_BLUR, function(e) {
+          form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('fullname-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('email-edit'), Dom.Event.ON_BLUR, function(e) {
+          form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('description-edit'), Dom.Event.ON_BLUR, function(e) {
+          form2.element(this.id).validate();
+      });
+    }
+  </script>

@@ -1,0 +1,266 @@
+<% layout('_layout.html') %>
+<main class="main-content  mt-0">
+    <section>
+      
+      <div class="container py-8">
+        <div class="row">
+          <div class="col-md-7">
+            <div class="card card-plain">
+              <div class="card-header pb-0 text-start">
+                <h4 class="font-weight-bolder">Contact Us</h4>
+                <p class="mb-0">Feel free to leave a message to us.</p>
+              </div>
+              <div class="card-body">
+                <div id="message"></div>
+                <form role="form">
+                  <div class="mb-3">
+                    <input id="fullname" type="text" class="form-control form-control-lg" placeholder="Fullname" aria-label="Fullname">
+                    <small class="invalid-feedback" id="fullname-error"></small>
+                  </div>
+                  <div class="mb-3">
+                    <input id="email" type="email" class="form-control form-control-lg" placeholder="Email" aria-label="Email">
+                    <small class="invalid-feedback" id="email-error"></small>
+                  </div>
+                  <div class="mb-3">
+                    <input id="subject" type="text" class="form-control form-control-lg" placeholder="Subject" aria-label="Subject">
+                    <small class="invalid-feedback" id="subject-error"></small>
+                  </div>
+                  <div class="mb-3">
+                    <textarea id="emessage" class="form-control form-control-lg" rows="3" placeholder="Message" aria-label="Message"></textarea>
+                    <small class="invalid-feedback" id="emessage-error"></small>
+                  </div>
+                  <div class="text-center">
+                    <button id="btnSubmit" onclick="submitMessage(this)" type="button" class="btn btn-lg btn-primary btn-lg w-100 mt-4 mb-0">Submit</button>
+                  </div>
+                </form>
+              </div>
+              <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                <p class="mb-4 text-sm mx-auto">
+                  Don't have an account?
+                  <a href="/sign-up" class="text-primary text-gradient font-weight-bold">Sign up | </a>
+                  <a href="/" class="text-primary text-gradient font-weight-bold">Back to home</a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="card card-plain">
+              <div class="card-body">
+                <p>
+                  <ul>
+                    <li class="mb-4">Please read our F.A.Q below before send us message. Maybe we already answer and explain about your question.</li>
+                    <li class="mb-4">We will going to response your message as fast as possible. But sometimes this process could take up to 2x24 hours.</li>
+                  </ul>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <div class="card mb-4">
+              <div class="card-header pb-0">
+                <h4>F.A.Q</h4>
+                <hr>
+              </div>
+              <div class="card-body px-4 pt-0 pb-2">
+                <div class="col-lg-12">
+                  <div id="data-faq"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+  <style>
+    .accordion-button::after {
+      content: "^";
+    }
+  </style>
+  <%~ includeFile('_footer.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    var mailer = true;
+
+    let datafaq = store({
+      list: [],
+      message: 'No records found.'
+    });
+
+    function faqTemplate() {
+      var dom = '';
+      if(datafaq.list.length > 0) {
+        dom += `<div class="accordion" id="accordionExample">
+          ${datafaq.list.map(function(item, index) {
+            return `<div class="accordion-item">
+                <h2 class="accordion-header" id="heading${index}">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="true" aria-controls="collapse${index}">
+                    <b>${index+1}. ${item.question}</b>
+                  </button>
+                </h2>
+                <div id="collapse${index}" class="accordion-collapse collapse ${index===0?'show':''}" aria-labelledby="heading${index}" data-bs-parent="#accordionExample">
+                  <div class="accordion-body">
+                    ${item.answer.replace(/\n\n/g,'<br><br>')}
+                  </div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+      } else {
+        dom += '<p>'+datafaq.message+'</p>';
+      }
+      return dom;
+    }
+
+    component('#data-faq', faqTemplate, {events: true});
+
+    var form = new FormValidation();
+    form.rules({
+      fullname: {
+        required:true,
+        message: 'Fullname must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'fullname-error',
+        errorAddClass: {
+          fullname:'is-invalid'
+        }
+      },
+      email: {
+        required: true,
+        message: 'Wrong format email!',
+        regex: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/,
+        errorPlace:'email-error',
+        errorAddClass: {
+          email:'is-invalid'
+        }
+      },
+      subject: {
+        required:true,
+        message: 'Subject must be min 3 chars!',
+        minLength: 3,
+        errorPlace:'subject-error',
+        errorAddClass: {
+          subject:'is-invalid'
+        }
+      },
+      emessage: {
+        required:true,
+        message: 'Message must be min 20 chars!',
+        regex: /^.{20,}$/s,
+        errorPlace:'emessage-error',
+        errorAddClass: {
+          emessage:'is-invalid'
+        }
+      }
+    });
+
+    function submitMessage(e) {
+      if(form.validate().isValid()) {
+        if (mailer) {
+          e.disabled = true;
+          _ajax({
+            method: 'post',
+            url: '<% it.baseUrl %>/api/sendmail',
+            headers: {'content-type': 'application/json'},
+            data: {
+              name: Dom.id('fullname').value,
+              email: Dom.id('email').value,
+              subject: Dom.id('subject').value,
+              message: Dom.id('emessage').value
+            }
+          }, function(err, data) {
+            e.disabled = false;
+            if(err) return sendAlert('message', 'danger', err);
+            if(data && data.success) {
+              sendAlert('message', 'success', data.message);
+              cleanup();
+            } else {
+              sendAlert('message', 'danger', data.message);
+            }
+          });
+        } else {
+          sendAlert('message', 'danger', 'Sorry, your connection is not secure! Are you a human?');
+        }
+      }
+    }
+
+    function cleanup() {
+      Dom.id('fullname').value = '';
+      Dom.id('email').value = '';
+      Dom.id('subject').value = '';
+      Dom.id('emessage').value = '';
+    }
+
+    function loadFAQ() {
+      _ajax({
+        method: 'get',
+        url: '<% it.baseUrl %>/api/faq/list',
+        headers: {'content-type': 'application/json'}
+      }, function(err, res) {
+        if(err) return console.log(err);
+        if(res && res.success) {
+          datafaq.list = [...res.data];
+        } else {
+          console.log(res.message);
+        }
+      });
+    }
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      loadFAQ();
+
+      Dom.addListener(Dom.id('fullname'), Dom.Event.ON_BLUR, function(e) {
+        form.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('email'), Dom.Event.ON_BLUR, function(e) {
+          form.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('subject'), Dom.Event.ON_BLUR, function(e) {
+        form.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('emessage'), Dom.Event.ON_BLUR, function(e) {
+          form.element(this.id).validate();
+      });
+
+      if(getToken()) {
+        location.href='/support';
+      }
+    }
+  </script>
+  <% if (it.useMailer === false) { %>
+    <script>
+      sendAlert('message', 'warning', 'Sorry, Currently we disabled this contact form for temporary.');
+      Dom.id('btnSubmit').disabled = true;
+    </script>
+  <% } %>
+  <% if (it.useMailer && it.captcha) { %>
+    <script src="/assets/default/js/recaptcha.js"></script>
+    <script>
+      refreshCaptcha("/contact","<%=it.captcha%>", function(error, response) { 
+        if(error) {
+          mailer = false;
+          console.log(error);
+          return;
+        }
+        verifyCaptcha("<%=it.baseUrl%>", function (error, response) {
+          if(error) {
+            mailer = false;
+            console.log(error);
+            return;
+          }
+          if(response.data.score < 0.4) {
+            mailer = false;
+          }
+        });
+      });
+    </script>
+    <%if (it.hideBadge) { %><script>hideBadge();</script><% } %>
+  <% } %>

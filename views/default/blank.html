@@ -1,0 +1,31 @@
+<% layout('_layout.html') %>
+<% it.title= 'Blank Page' %>
+<main class="main-content  mt-0">
+    <section>
+      <div class="page-header min-vh-50">
+        <div class="container">
+          <div class="row">
+            <div class="card card-plain">
+              <div class="card-header">
+                <p>Blank page</p>
+              </div>
+              <div class="card-body">
+                <p>...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      //
+    }
+  </script>

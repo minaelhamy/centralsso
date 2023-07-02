@@ -1,0 +1,33 @@
+<!-- Modal -->
+<div class="modal fade" id="modalChangePassword" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="changePasswordLabel">Change Password</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="cpass-message"></div>
+          <div class="form-group">
+            <label for="password">Old Password</label>
+            <input type="password" class="form-control" id="password" placeholder="">
+            <small class="invalid-feedback" id="password-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="password1">New Password</label>
+            <input type="password" class="form-control" id="password1" placeholder="">
+            <small class="invalid-feedback" id="password1-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="password2">Confirm Password</label>
+            <input type="password" class="form-control" id="password2" placeholder="">
+            <small class="invalid-feedback" id="password2-error"></small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitChangePass(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+</div>

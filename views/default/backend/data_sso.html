@@ -1,0 +1,547 @@
+<% layout('_layout.html') %>
+<main class="main-content position-relative border-radius-lg ">
+    <%~ includeFile('_navbar.html', it) %>
+    
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6><%=it.title%></h6>
+              <div id="message"></div>
+              <div class="row justify-content-between">
+                <div class="col-md-6">
+                  <button onclick="openModal('modalAdd')" class="btn btn-icon btn-3 btn-primary" type="button">
+                    <span class="btn-inner--icon"><i class="ni ni-fat-add"></i></span>
+                    <span class="btn-inner--text">Add</span>
+                  </button>
+                  <button onclick="exportData()" class="btn btn-icon btn-3 btn-primary" type="button">
+                    <span class="btn-inner--text">Export</span>
+                    <span class="btn-inner--icon ms-1"><i class="ni ni-cloud-download-95"></i></span>
+                  </button>
+                </div>
+                <div class="col-md-6">
+                  <div class="row justify-content-end">
+                    <div class="col-md-5">
+                      <div class="form-group">
+                        <div class="input-group mb-4">
+                          <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
+                          <input id="search" class="form-control" placeholder="name / key" type="text">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div id="datatable"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <%~ includeFile('_footer.html', it) %>    
+    </div>
+  </main>
+
+  <!-- Modal Add Start -->
+  <div class="modal fade" id="modalAdd" tabindex="-1" aria-labelledby="modalAddLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAddLabel">Add SSO</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="add-message"></div>
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" class="form-control" id="name" placeholder="">
+            <small class="invalid-feedback" id="name-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="callback_url">Callback Url</label>
+            <input type="text" class="form-control" id="callback_url" placeholder="https://your_domain.com/callback">
+            <small class="invalid-feedback" id="callback_url-error"></small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitAdd(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Add End -->
+
+  <!-- Modal Edit Start -->
+  <div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditLabel">Edit SSO</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="edit-message"></div>
+          <div class="form-group" hidden>
+            <label for="id-edit">ID</label>
+            <input type="text" class="form-control" id="id-edit" placeholder="">
+            <small class="invalid-feedback" id="id-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="name-edit">Name</label>
+            <input type="text" class="form-control" id="name-edit" placeholder="">
+            <small class="invalid-feedback" id="name-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="callback_url-edit">Callback Url</label>
+            <input type="text" class="form-control" id="callback_url-edit" placeholder="https://your_domain.com/callback">
+            <small class="invalid-feedback" id="callback_url-edit-error"></small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitEdit(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Edit End -->
+  <%~ includeFile('_global_modal.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    
+    let datatable = store({
+      list: [],
+      message: 'No records found.',
+      loadmore: 0,
+      limit: 10,
+      last_created_at: 0,
+      totalRecord: 0
+    });
+
+    function datatableTemplate() {
+      var dom = `<div class="table-responsive p-0">
+        <table class="table align-items-center mb-0">
+          <thead>
+            <tr>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Name</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Key</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Callback Url</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">SSO Url</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Created at</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Modified at</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+              <th class="text-secondary opacity-7"></th>
+            </tr>
+          </thead>
+          <tbody>`;
+      if (datatable.list.length > 0) {
+        dom += `${datatable.list.map(function(item, index) {
+          return `<tr>
+            <td class="align-middle">
+              <span class="text-secondary text-xs font-weight-bold">${item.name}</span>
+            </td>
+            <td class="align-middle">
+              <span class="text-secondary text-xs font-weight-bold">${item.key}</span>
+            </td>
+            <td class="align-middle">
+              <span class="text-secondary text-xs font-weight-bold">${item.callback_url}</span>
+            </td>
+            <td class="align-middle">
+              <span class="text-secondary text-xs font-weight-bold">${item.sso_url}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${moment(item.created_at).format('YYYY-MM-DD HH:mm')}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${moment(item.modified_at).format('YYYY-MM-DD HH:mm')}</span>
+            </td>
+            <td class="align-middle text-center text-sm">
+              <div class="form-check form-switch justify-content-center">
+                <input class="form-check-input" type="checkbox" onclick="setStatus('${item.id}')" id="status-${item.id}" ${(item.status ? 'checked' : '')}>
+                <label class="form-check-label" for="status-${item.id}"></label>
+              </div>
+            </td>
+            <td class="align-middle">
+              <a href="javascript:;" title="Edit" onclick="openModal('modalEdit','${item.id}')" class="text-secondary font-weight-bold text-xs" style="cursor:pointer;">
+                <i class="fa fa-edit fa-2x"></i>
+              </a> | <a href="javascript:;" title="Delete" onclick="submitDelete('${item.id}')" class="text-secondary font-weight-bold text-xs" style="cursor:pointer;">
+                <i class="fa fa-trash-alt fa-2x text-danger"></i>
+              </a>
+            </td>
+          </tr>`;
+        }).join('')}`;
+      } else {
+        dom += `<tr>
+            <td colspan="100%">
+              <div class="text-center">
+                ${datatable.message}
+              </div>  
+            </td>
+          </tr>`;
+      }
+      dom += `</tbody>
+          </table>
+          <hr>
+          <div class="col-md-12 text-center">
+            <p class="text-sm">Total records found: ${datatable.totalRecord}</p>
+          ${datatable.loadmore > 0 ? `<button onclick="loadmore()" class="btn btn-sm btn-outline-primary">Loadmore</button>` : ''}
+          </div>
+        </div>`;
+      return dom;
+    }
+
+    component('#datatable', datatableTemplate, {events: true});
+    
+    // modal add
+    const modalAdd = new bootstrap.Modal(Dom.id('modalAdd'), {
+      keyboard: false
+    });
+    // modal edit
+    const modalEdit = new bootstrap.Modal(Dom.id('modalEdit'), {
+      keyboard: false
+    });
+
+    function openModal(name, param) {
+      switch (name) {
+        case 'modalAdd':
+          modalAdd.show();
+          cleanup('add');
+          break;
+        case 'modalEdit':
+          modalEdit.show();
+          cleanup('edit');
+          const list = getList(param);
+          if (list.length > 0) {
+            const item = list[0];
+            Dom.id('id-edit').value = item.id;
+            Dom.id('name-edit').value = item.name;
+            Dom.id('callback_url-edit').value = item.callback_url;
+          }
+          break;
+      }
+    }
+
+    function getList(id) {
+      const nosql = new FlyJson();
+      return nosql.set(datatable.list).where('id', '==', id).exec();
+    }
+
+    function cleanup(section) {
+      switch (section) {
+        case 'add':
+          Dom.id('add-message').innerHTML = '';
+          Dom.id('name').value = '';
+          Dom.id('callback_url').value = '';
+          break;
+        case 'edit':
+          Dom.id('edit-message').innerHTML = '';
+          Dom.id('id-edit').value = '';
+          Dom.id('name-edit').value = '';
+          Dom.id('callback_url-edit').value = '';
+          break;  
+      }
+    }
+
+    function submitAdd(e) {
+      if(form1.validate().isValid()) {
+        e.disabled = true;
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/sso/add',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            name: Dom.id('name').value,
+            callback_url: Dom.id('callback_url').value
+          }
+        }, function(err, res) {
+          e.disabled = false;
+          if(err) return sendAlert('add-message', 'danger', err);
+          if(res && res.success) {
+            cleanup('add');
+            sendAlert('add-message', 'success', res.message);
+            reload();
+          } else {
+            sendAlert('add-message', 'danger', res.message);
+          }
+        });
+      }
+    }
+
+    function submitEdit(e) {
+      if(form2.validate().isValid()) {
+        e.disabled = true;
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/sso/update',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            id: Dom.id('id-edit').value,
+            name: Dom.id('name-edit').value,
+            callback_url: Dom.id('callback_url-edit').value
+          }
+        }, function(err, res) {
+          e.disabled = false;
+          if(err) return sendAlert('edit-message', 'danger', err);
+          if(res && res.success) {
+            sendAlert('edit-message', 'success', res.message);
+            reload();
+          } else {
+            sendAlert('edit-message', 'danger', res.message);
+          }
+        });
+      }
+    }
+
+    function submitDelete(id) {
+      confirmation('Are you sure?', 'Once it deleted, you can\'t get it back!', function () {
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/sso/delete',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            id: id
+          }
+        }, function(err, res) {
+          if(err) return sendAlert('message', 'danger', err);
+          if(res && res.success) {
+            sendAlert('message', 'success', res.message);
+            reload();
+          } else {
+            sendAlert('message', 'danger', res.message);
+          }
+        });
+      });
+    }
+
+    function setStatus(id) {
+      _ajax({
+        method: 'post',
+        url: '<% it.baseUrl %>/api/sso/set-status',
+        headers: {
+          'content-type': 'application/json',
+          'x-token': getToken()
+        },
+        data: {
+          id: id,
+          status: (Dom.id('status-'+id).checked ? 1 : 0)
+        }
+      }, function(err, res) {
+        if(err) {
+          sendAlert('message', 'danger', err);
+          Dom.id('status-'+id).checked = !Dom.id('status-'+id).checked;
+          return;
+        }
+        
+        if(res && res.success) {
+          // do nothing
+        } else {
+          sendAlert('message', 'danger', res.message);
+          Dom.id('status-'+id).checked = !Dom.id('status-'+id).checked;
+        }
+      });
+    }
+
+    // Export CSV
+    function _restructure(objData) {
+      var newdata = [];
+      newdata.push({
+        "No": "No",
+        "Name": "Name",
+        "Key": "Key",
+        "Callback Url": "Callback Url",
+        "SSO Url": "SSO Url",
+        "Status": "Status",
+        "Created at": "Created at",
+        "Modified at": "Modified at"
+      });
+      for (var i=0; i<objData.length;i++) {
+        newdata.push({
+          "No": (i+1),
+          "Name": objData[i].name,
+          "Key": objData[i].key,
+          "Callback Url": objData[i].callback_url,
+          "SSO Url": objData[i].sso_url,
+          "Status": (objData[i].status ?'active':'suspended'),
+          "Created at": moment(objData[i].created_at).format('DD-MM-YYYY HH:mm:ss'),
+          "Modified at": moment(objData[i].modified_at).format('DD-MM-YYYY HH:mm:ss')
+        });
+      }
+      return newdata;
+    }
+
+    function _convertToCSV(objArray) {
+      var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+      var str = '';
+
+      for (var i = 0; i < array.length; i++) {
+        var line = '';
+        for (var index in array[i]) {
+          if (line != '') line += ',';
+          line += JSON.stringify(array[i][index]);
+        }
+        str += line + '\r\n';
+      }
+
+      return str;
+    }
+
+    function exportData() {
+        _export_csv(datatable.list, 'Report_SSO_'+moment(Date.now()).format('YYYY-MM-DD')+'.csv');  
+    }
+    
+    function _export_csv(objData, filename) {
+        var csv_string = _convertToCSV(_restructure(objData));
+        var link = document.createElement('a');
+        link.style.display = 'none';
+        link.setAttribute('target', '_blank');
+        link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // validation
+    var form1 = new FormValidation();
+    form1.rules({
+      name: {
+        required:true,
+        message: 'Name must be min 3-50 chars',
+        minLength: 3,
+        maxLength: 50,
+        errorPlace:'name-error',
+        errorAddClass: {
+          name:'is-invalid'
+        }
+      },
+      callback_url: {
+        required:true,
+        message: 'Callback Url must be full path with protocol',
+        minLength: 11,
+        regex: /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/,
+        errorPlace:'callback_url-error',
+        errorAddClass: {
+          callback_url:'is-invalid'
+        }
+      }
+    });
+
+    var form2 = new FormValidation();
+    form2.rules({
+      'name-edit': {
+        required:true,
+        message: 'Name must be min 3-50 chars',
+        minLength: 3,
+        maxLength: 50,
+        errorPlace:'name-edit-error',
+        errorAddClass: {
+          'name-edit':'is-invalid'
+        }
+      },
+      'callback_url-edit': {
+        required:true,
+        message: 'Callback Url is required',
+        regex: /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/,
+        errorPlace:'callback_url-edit-error',
+        errorAddClass: {
+          'callback_url-edit':'is-invalid'
+        }
+      }
+    });
+
+    function _getData(search, last_created_at, limit, _cb) {
+      last_created_at = (last_created_at === undefined ? 0 : last_created_at);
+      limit = (limit === undefined ? 10 : limit);
+      _ajax({
+        method: 'post',
+        url: '<% it.baseUrl %>/api/master/sso/list',
+        headers: {
+          'content-type': 'application/json',
+          'x-token': getToken()
+        },
+        data: {
+          "search": search,
+          "last_created_at": last_created_at,
+          "limit": limit
+        }
+      }, function(err, res) {
+        if(err) {
+          if (_cb && typeof _cb === 'function') {
+            return _cb(err, null);
+          }
+          console.log(err);
+          return false;
+        }
+        if (_cb && typeof _cb === 'function') {
+          return _cb(null, res);
+        }
+        return true;
+      });
+    }
+
+    function reload() {
+      datatable.list = [];
+      _getData(Dom.id('search').value.trim(), 0, datatable.limit, function(err, res) {
+        if(err) return console.log(err);
+        if(res && res.success) {
+          datatable.list = [...res.data];
+          datatable.loadmore = res.pagination.loadmore;
+          datatable.last_created_at = res.pagination.last_created_at;
+          datatable.limit = res.pagination.limit;
+          datatable.totalRecord = res.pagination.totalRecord;
+        }
+      });
+    }
+
+    function loadmore() {
+      _getData(Dom.id('search').value.trim(), datatable.last_created_at, datatable.limit, function(err, res) {
+        if(err) return console.log(err);
+        if(res && res.success) {  
+          datatable.list = datatable.list.concat(res.data);
+          datatable.loadmore = res.pagination.loadmore;
+          datatable.last_created_at = res.pagination.last_created_at;
+          datatable.limit = res.pagination.limit;
+        }
+      });
+    }
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      // fill the table
+      reload();
+
+      Dom.addListener(Dom.id('search'), Dom.Event.ON_KEYUP, delay(function(e) {
+        reload();
+      },1000));
+
+      // listen validation
+      Dom.addListener(Dom.id('name'), Dom.Event.ON_BLUR, function(e) {
+        form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('callback_url'), Dom.Event.ON_BLUR, function(e) {
+        form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('name-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('callback_url-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+    }
+  </script>

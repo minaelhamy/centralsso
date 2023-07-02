@@ -1,0 +1,621 @@
+<% layout('_layout.html') %>
+<main class="main-content position-relative border-radius-lg ">
+    <%~ includeFile('_navbar.html', it) %>
+    
+    <div class="container-fluid py-4">
+      <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6><%=it.title%></h6>
+              <div id="message"></div>
+              <div class="row justify-content-between">
+                <div class="col-md-6">
+                  <button onclick="openModal('modalAdd')" class="btn btn-icon btn-3 btn-primary" type="button">
+                    <span class="btn-inner--icon"><i class="ni ni-fat-add"></i></span>
+                    <span class="btn-inner--text">Add</span>
+                  </button>
+                  <button onclick="exportData()" class="btn btn-icon btn-3 btn-primary" type="button">
+                    <span class="btn-inner--text">Export</span>
+                    <span class="btn-inner--icon ms-1"><i class="ni ni-cloud-download-95"></i></span>
+                  </button>
+                </div>
+                <div class="col-md-6">
+                  <div class="row justify-content-end">
+                    <div class="col-md-5">
+                      <div class="form-group">
+                        <div class="input-group mb-4">
+                          <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
+                          <input id="search" class="form-control" placeholder="username / email" type="text">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div id="datatable"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <%~ includeFile('_footer.html', it) %>    
+    </div>
+  </main>
+
+  <!-- Modal Add Start -->
+  <div class="modal fade" id="modalAdd" tabindex="-1" aria-labelledby="modalAddLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAddLabel">Add User</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="add-message"></div>
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" placeholder="">
+            <small class="invalid-feedback" id="username-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="passwd">Password</label>
+            <input type="password" class="form-control" id="passwd">
+            <small class="invalid-feedback" id="passwd-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="text" class="form-control" id="email" placeholder="">
+            <small class="invalid-feedback" id="email-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="Role">Role</label>
+            <select id="role" class="form-control"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitAdd(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Add End -->
+
+  <!-- Modal Edit Start -->
+  <div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditLabel">Edit User</h5>
+          <button type="button" class="btn-close text-secondary" style="margin:-0.5rem -0.5rem 0.5rem auto;" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="edit-message"></div>
+          <div class="form-group">
+            <label for="username-edit">Username</label>
+            <input type="text" class="form-control" id="username-edit" placeholder="" readonly>
+            <small class="invalid-feedback" id="username-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="email-edit">Email</label>
+            <input type="text" class="form-control" id="email-edit" placeholder="">
+            <small class="invalid-feedback" id="email-edit-error"></small>
+          </div>
+          <div class="form-group">
+            <label for="role-edit">Role</label>
+            <select id="role-edit" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label for="status-edit">Status</label>
+            <select id="status-edit" class="form-control"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button onclick="submitEdit(this)" type="button" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Edit End -->
+  <%~ includeFile('_global_modal.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+
+    // Select Role
+    const datarole = [
+      {id: 1, name: 'admin'},
+      {id: 2, name: 'member'},
+    ];
+
+    // Select Status
+    const datastatus = [
+      {id: 0, name: 'suspended'},
+      {id: 1, name: 'active'}
+    ];
+    
+    let datatable = store({
+      list: [],
+      message: 'No records found.',
+      loadmore: 0,
+      limit: 10,
+      last_created_at: 0,
+      totalRecord: 0
+    });
+
+    function datatableTemplate() {
+      var dom = `<div class="table-responsive p-0">
+        <table class="table align-items-center mb-0">
+          <thead>
+            <tr>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">User</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Role</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Method</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Service</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Created at</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Modified at</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+              <th class="text-secondary opacity-7"></th>
+            </tr>
+          </thead>
+          <tbody>`;
+      if (datatable.list.length > 0) {
+        dom += `${datatable.list.map(function(item, index) {
+          return `<tr>
+            <td>
+              <div class="d-flex px-2 py-1">
+                <div>
+                  <img src="${item.gravatar}" class="avatar avatar-sm me-3" alt="${(item.fullname ? item.fullname : item.username)}">
+                </div>
+                <div class="d-flex flex-column justify-content-center">
+                  <h6 class="mb-0 text-sm">${(item.fullname ? item.fullname : item.username)}</h6>
+                  <p class="text-xs text-secondary mb-0">${item.email}</p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <p class="text-sm font-weight-bold mb-0">
+                <span class="badge badge-sm bg-gradient-${(item.role === 'admin' ? 'dark': 'primary')}">
+                  ${item.role}
+                </span>
+              </p>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${item.method}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${item.service}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${moment(item.created_at).format('YYYY-MM-DD HH:mm')}</span>
+            </td>
+            <td class="align-middle text-center">
+              <span class="text-secondary text-xs font-weight-bold">${moment(item.modified_at).format('YYYY-MM-DD HH:mm')}</span>
+            </td>
+            <td class="align-middle text-center text-sm">
+              <div class="form-check form-switch justify-content-center">
+                <input class="form-check-input" type="checkbox" onclick="setStatus('${item.username}')" id="status-${item.username}" ${(item.status ? 'checked' : '')}>
+                <label class="form-check-label" for="status-${item.username}"></label>
+              </div>
+            </td>
+            <td class="align-middle">
+              <a href="javascript:;" title="Edit" onclick="openModal('modalEdit','${item.username}')" class="text-secondary font-weight-bold text-xs" style="cursor:pointer;">
+                <i class="fa fa-edit fa-2x"></i>
+              </a> | <a href="javascript:;" title="Delete" onclick="submitDelete('${item.username}')" class="text-secondary font-weight-bold text-xs" style="cursor:pointer;">
+                <i class="fa fa-trash-alt fa-2x text-danger"></i>
+              </a>
+            </td>
+          </tr>`;
+        }).join('')}`;
+      } else {
+        dom += `<tr>
+            <td colspan="100%">
+              <div class="text-center">
+                ${datatable.message}
+              </div>  
+            </td>
+          </tr>`;
+      }
+      dom += `</tbody>
+          </table>
+          <hr>
+          <div class="col-md-12 text-center">
+            <p class="text-sm">Total records found: ${datatable.totalRecord}</p>
+          ${datatable.loadmore > 0 ? `<button onclick="loadmore()" class="btn btn-sm btn-outline-primary">Loadmore</button>` : ''}
+          </div>
+        </div>`;
+      return dom;
+    }
+
+    component('#datatable', datatableTemplate, {events: true});
+    
+    // modal add
+    const modalAdd = new bootstrap.Modal(Dom.id('modalAdd'), {
+      keyboard: false
+    });
+    // modal edit
+    const modalEdit = new bootstrap.Modal(Dom.id('modalEdit'), {
+      keyboard: false
+    });
+
+    function openModal(name, param) {
+      switch (name) {
+        case 'modalAdd':
+          modalAdd.show();
+          cleanup('add');
+          break;
+        case 'modalEdit':
+          modalEdit.show();
+          cleanup('edit');
+          const list = getList(param);
+          if (list.length > 0) {
+            const item = list[0];
+            Dom.id('username-edit').value = item.username;
+            Dom.id('email-edit').value = item.email;
+            setSelectedOption('role-edit', 'text', item.role);
+            setSelectedOption('status-edit', 'value', item.status);
+          }
+          break;
+      }
+    }
+
+    function getList(id) {
+      const nosql = new FlyJson();
+      return nosql.set(datatable.list).where('username', '==', id).exec();
+    }
+
+    function cleanup(section) {
+      switch (section) {
+        case 'add':
+          Dom.id('add-message').innerHTML = '';
+          Dom.id('username').value = '';
+          Dom.id('passwd').value = '';
+          Dom.id('email').value = '';
+          break;
+        case 'edit':
+          Dom.id('edit-message').innerHTML = '';
+          Dom.id('username-edit').value = '';
+          Dom.id('email-edit').value = '';
+          break;  
+      }
+    }
+
+    function submitAdd(e) {
+      if(form1.validate().isValid()) {
+        e.disabled = true;
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/user/add',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            username: Dom.id('username').value,
+            email: Dom.id('email').value,
+            role: getSelectedOption('role').text,
+            password: Dom.id('passwd').value
+          }
+        }, function(err, res) {
+          e.disabled = false;
+          if(err) return sendAlert('add-message', 'danger', err);
+          if(res && res.success) {
+            cleanup('add');
+            sendAlert('add-message', 'success', res.message);
+            reload();
+          } else {
+            sendAlert('add-message', 'danger', res.message);
+          }
+        });
+      }
+    }
+
+    function submitEdit(e) {
+      if(form2.validate().isValid()) {
+        e.disabled = true;
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/user/update',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            username: Dom.id('username-edit').value,
+            email: Dom.id('email-edit').value,
+            role: getSelectedOption('role-edit').text,
+            status: getSelectedOption('status-edit').value
+          }
+        }, function(err, res) {
+          e.disabled = false;
+          if(err) return sendAlert('edit-message', 'danger', err);
+          if(res && res.success) {
+            sendAlert('edit-message', 'success', res.message);
+            reload();
+          } else {
+            sendAlert('edit-message', 'danger', res.message);
+          }
+        });
+      }
+    }
+
+    function submitDelete(username) {
+      confirmation('Are you sure?', 'Once it deleted, you can\'t get it back!', function () {
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/user/delete',
+          headers: {
+            'content-type': 'application/json',
+            'x-token': getToken()
+          },
+          data: {
+            username: username
+          }
+        }, function(err, res) {
+          if(err) return sendAlert('message', 'danger', err);
+          if(res && res.success) {
+            sendAlert('message', 'success', res.message);
+            reload();
+          } else {
+            sendAlert('message', 'danger', res.message);
+          }
+        });
+      });
+    }
+
+    function setStatus(id) {
+      _ajax({
+        method: 'post',
+        url: '<% it.baseUrl %>/api/user/status/update',
+        headers: {
+          'content-type': 'application/json',
+          'x-token': getToken()
+        },
+        data: {
+          username: id,
+          status: (Dom.id('status-'+id).checked ? 1 : 0)
+        }
+      }, function(err, res) {
+        if(err) {
+          sendAlert('message', 'danger', err);
+          Dom.id('status-'+id).checked = !Dom.id('status-'+id).checked;
+          return;
+        }
+        
+        if(res && res.success) {
+          // do nothing
+        } else {
+          sendAlert('message', 'danger', res.message);
+          Dom.id('status-'+id).checked = !Dom.id('status-'+id).checked;
+        }
+      });
+    }
+
+    // Export CSV
+    function _restructure(objData) {
+      var newdata = [];
+      newdata.push({
+        "No": "No",
+        "Username": "Username",
+        "Fullname": "Fullname",
+        "Email": "Email",
+        "Role": "Role",
+        "Method": "Method",
+        "Service": "Service",
+        "Status": "Status",
+        "Created at": "Created at",
+        "Modified at": "Modified at"
+      });
+      for (var i=0; i<objData.length;i++) {
+        newdata.push({
+          "No": (i+1),
+          "Username": objData[i].username,
+          "Fullname": (objData[i].fullname?objData[i].fullname:objData[i].username),
+          "Email": objData[i].email,
+          "Role": objData[i].role,
+          "Method": objData[i].method,
+          "Service": objData[i].service,
+          "Status": (objData[i].status ?'active':'suspended'),
+          "Created at": moment(objData[i].created_at).format('DD-MM-YYYY HH:mm:ss'),
+          "Modified at": moment(objData[i].modified_at).format('DD-MM-YYYY HH:mm:ss')
+        });
+      }
+      return newdata;
+    }
+
+    function _convertToCSV(objArray) {
+      var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+      var str = '';
+
+      for (var i = 0; i < array.length; i++) {
+        var line = '';
+        for (var index in array[i]) {
+          if (line != '') line += ',';
+          line += JSON.stringify(array[i][index]);
+        }
+        str += line + '\r\n';
+      }
+
+      return str;
+    }
+
+    function exportData() {
+        _export_csv(datatable.list, 'Report_User_'+moment(Date.now()).format('YYYY-MM-DD')+'.csv');  
+    }
+    
+    function _export_csv(objData, filename) {
+        var csv_string = _convertToCSV(_restructure(objData));
+        var link = document.createElement('a');
+        link.style.display = 'none';
+        link.setAttribute('target', '_blank');
+        link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // validation
+    var form1 = new FormValidation();
+    form1.rules({
+      username: {
+        required:true,
+        message: 'Username must be alphanumeric & lowercase min 3-20 chars!',
+        minLength: 3,
+        maxLength: 20,
+        regex: /^[a-z0-9]+$/,
+        errorPlace:'username-error',
+        errorAddClass: {
+          username:'is-invalid'
+        }
+      },
+      passwd: {
+        required: true,
+        message: 'Password must be min 6-20 chars!',
+        minLength:6,
+        maxLength:20,
+        errorPlace:'passwd-error',
+        errorAddClass: {
+          passwd:'is-invalid'
+        }
+      },
+      email: {
+        required: true,
+        message: 'Wrong format email!',
+        regex: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/,
+        errorPlace:'email-error',
+        errorAddClass: {
+          email:'is-invalid'
+        }
+      }
+    });
+
+    var form2 = new FormValidation();
+    form2.rules({
+      'email-edit': {
+        required: true,
+        message: 'Wrong format email!',
+        regex: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/,
+        errorPlace:'email-edit-error',
+        errorAddClass: {
+          'email-edit':'is-invalid'
+        }
+      }
+    });
+
+    function _getData(search, last_created_at, limit, _cb) {
+      last_created_at = (last_created_at === undefined ? 0 : last_created_at);
+      limit = (limit === undefined ? 10 : limit);
+      _ajax({
+        method: 'post',
+        url: '<% it.baseUrl %>/api/user/list',
+        headers: {
+          'content-type': 'application/json',
+          'x-token': getToken()
+        },
+        data: {
+          "search": search,
+          "last_created_at": last_created_at,
+          "limit": limit
+        }
+      }, function(err, res) {
+        if(err) {
+          if (_cb && typeof _cb === 'function') {
+            return _cb(err, null);
+          }
+          console.log(err);
+          return false;
+        }
+        if (_cb && typeof _cb === 'function') {
+          return _cb(null, res);
+        }
+        return true;
+      });
+    }
+
+    function reload() {
+      datatable.list = [];
+      _getData(Dom.id('search').value.trim(), 0, datatable.limit, function(err, res) {
+        if(err) return console.log(err);
+        if(res && res.success) {
+          datatable.list = [...res.data];
+          datatable.loadmore = res.pagination.loadmore;
+          datatable.last_created_at = res.pagination.last_created_at;
+          datatable.limit = res.pagination.limit;
+          datatable.totalRecord = res.pagination.totalRecord;
+        }
+      });
+    }
+
+    function loadmore() {
+      _getData(Dom.id('search').value.trim(), datatable.last_created_at, datatable.limit, function(err, res) {
+        if(err) return console.log(err);
+        if(res && res.success) {  
+          datatable.list = datatable.list.concat(res.data);
+          datatable.loadmore = res.pagination.loadmore;
+          datatable.last_created_at = res.pagination.last_created_at;
+          datatable.limit = res.pagination.limit;
+        }
+      });
+    }
+
+    function checkUsername(username) {
+      _ajax({
+        method: 'get',
+        url: '<% it.baseUrl %>/api/user/check-username/'+username
+      }, function(err, res) {
+        if (err) return console.log(err);
+        if(res.statusCode === 200) {
+          if(res.data.total) {
+            setInvalid('username', true, res.message);
+          }
+        }
+      });
+    }
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      // fill the table
+      reload();
+      
+      // fill the select options
+      populateSelect('role', datarole, 'id', 'name');
+      populateSelect('role-edit', datarole, 'id', 'name');
+      populateSelect('status-edit', datastatus, 'id', 'name');
+
+      Dom.addListener(Dom.id('search'), Dom.Event.ON_KEYUP, delay(function(e) {
+        reload();
+      },1000));
+
+      // listen validation
+      Dom.addListener(Dom.id('username'), Dom.Event.ON_KEYUP, delay(function(e) {
+        if (this.value.trim().length > 2) {
+          checkUsername(this.value.trim());
+        }
+      },3000));
+      Dom.addListener(Dom.id('username'), Dom.Event.ON_BLUR, function(e) {
+        form1.element(this.id).validate();
+        if (this.value.trim().length > 2) {
+          checkUsername(this.value.trim());
+        }
+      });
+      Dom.addListener(Dom.id('passwd'), Dom.Event.ON_BLUR, function(e) {
+        form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('email'), Dom.Event.ON_BLUR, function(e) {
+          form1.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('username-edit'), Dom.Event.ON_BLUR, function(e) {
+        form2.element(this.id).validate();
+      });
+      Dom.addListener(Dom.id('email-edit'), Dom.Event.ON_BLUR, function(e) {
+          form2.element(this.id).validate();
+      });
+    }
+  </script>

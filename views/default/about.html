@@ -1,0 +1,69 @@
+<% layout('_layout.html') %>
+<main class="main-content  mt-0">
+    <section>
+      <div class="container py-8">
+        <div class="row">
+          <div class="me-xl-auto col-xl-5">
+            <div class="lc-block mb-4 ms-4">
+              <img class="img-fluid mb-4" width="100%" src="/assets/default/img/carousel-1.jpg">
+              <div editable="rich">
+                <h2 class="display-5 fw-bold"><%=it.siteName%></h2>
+              </div>
+              <p class="mt-4"><%=it.siteName%> is a centralized user management system that using Single Sign On (SSO) for authentication method.</p>
+            </div>
+          </div>
+          <div class="mx-auto col-xl-6">
+            <div class="lc-block d-sm-flex align-items-center mb-4">
+              <div class="lc-block rounded-circle d-flex justify-content-center align-items-center me-sm-3 mb-3 mb-sm-0  bg-light flex-shrink-0" style="width:64px;height:64px;">
+                <i class="fa fa-check"></i>
+              </div>
+              <div class="flex-grow-1" editable="rich">
+                <h3>Simple</h3>
+                <p class="text-muted">Just register to our system then you have a public user access to sign in everywhere.</p>
+              </div>
+            </div>
+            <div class="lc-block d-sm-flex align-items-center mb-4">
+              <div class="lc-block rounded-circle d-flex justify-content-center align-items-center me-sm-3 mb-3 mb-sm-0  bg-light flex-shrink-0" style="width:64px;height:64px;">
+                <i class="fa fa-check"></i>
+              </div>
+              <div class="flex-grow-1" editable="rich">
+                <h3>Secure</h3>
+                <p class="text-muted">We follow the JWT standard for Oauth 2.0 as describe in <a href="https://www.rfc-editor.org/rfc/rfc7519" target="_blank"><b>RFC7519</b></a> and <a href="https://datatracker.ietf.org/doc/html/rfc9068" target="_blank"><b>RFC9068</b></a>.</p>
+              </div>
+            </div>
+            <div class="lc-block d-sm-flex align-items-center">
+              <div class="lc-block rounded-circle d-flex justify-content-center align-items-center me-sm-3 mb-3 mb-sm-0  bg-light flex-shrink-0" style="width:64px;height:64px;">
+                <i class="fa fa-check"></i>
+              </div>
+              <div class="flex-grow-1" editable="rich">
+                <h3>Universal</h3>
+                <p class="text-muted">Only one public account but able to sign in everywhere.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="me-xl-auto col-xl-12">
+            <div class="lc-block mb-4 ms-4">
+              <h2 class="display-5 fw-bold">Credits</h2>
+              <p class="mt-4">
+                <%=it.siteName%> is a small application that focus on centralized user management. The author of this application is <a href="https://www.minaelhamysamy.com">Mina Elhamy Samy</a> 
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <%~ includeFile('_footer.html', it) %>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      //
+    }
+  </script>

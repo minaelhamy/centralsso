@@ -1,0 +1,251 @@
+<% layout('_layout.html') %>
+<main class="main-content  mt-0">
+    <section>
+      <% if(it.valid) { %>
+        <div class="page-header min-vh-100">
+      <% } else { %>
+        <div class="page-header min-vh-50">
+      <% } %>
+        <div class="container">
+          <div class="row justify-content-around">
+            <div class="col-lg-6">
+              <div class="card card-plain">
+                <% if(it.valid) { %>
+                <div class="card-header pb-0 text-start">
+                  <h4 class="font-weight-bolder"><%=it.title%></h4>
+                  <p class="mb-0">One account and sign in everywhere.</p>
+                </div>
+                <div class="card-body">
+                  <div id="message"></div>
+                  <div id="oauth-panel" class="row">
+                    <% if(it.oauth.google.enable) { %>
+                      <div class="col-lg-6 mb-2">
+                        <div id="buttonGoogle"></div>
+                      </div>
+                    <% } %>
+                  </div>
+                  <hr>
+                  <form id="login-panel" role="form">
+                    <div class="mb-3">
+                      <input id="username" type="text" class="form-control form-control-lg" placeholder="Username" aria-label="Username">
+                      <small class="invalid-feedback" id="username-error"></small>
+                    </div>
+                    <div class="mb-3">
+                      <input id="password" type="password" class="form-control form-control-lg" placeholder="Password" aria-label="Password">
+                      <small class="invalid-feedback" id="password-error"></small>
+                    </div>
+                    <div class="text-center">
+                      <button id="btnSubmit" onclick="submitSSO(this)" type="button" class="btn btn-lg btn-primary btn-lg w-100 mt-4 mb-0">Sign In</button>
+                    </div>
+                  </form>
+                  <div id="user-panel" class="row" style="display:none">
+                    <div class="col-lg-12">
+                      <h5 class="mb-4">You have already authorized</h5>
+                    </div>
+                    <div class="d-flex">
+                      <div class="flex-shrink-0">
+                        <img id="user-avatar" class="rounded-3" src="/assets/default/img/default-user.png" width="75px" height="75px">
+                      </div>
+                      <div class="flex-grow-1 ms-3">
+                        <span><b id="user-username">User</b></span><br>
+                        <button class="btn btn-sm btn-success mt-2" onclick="continueUser()">Continue</button>
+                        <button class="btn btn-sm btn-secondary mt-2"  onclick="changeUser()">Change User</button>
+                      </div>
+                    </div>
+                    <div class="col-lg-12">
+                      <hr>
+                    </div>
+                  </div>
+                </div>
+                <% } else { %>
+                  <div class="alert alert-danger alert-dismissible fade show text-white" role="alert"><%=it.message%></div>
+                <% } %>
+                <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                  <p class="mb-4 text-sm mx-auto">
+                    Don't have an account?
+                    <a href="/sign-up" class="text-primary text-gradient font-weight-bold">Sign up | </a>
+                    <a href="/forgot-password" class="text-danger text-gradient font-weight-bold">Forgot Password?</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <%~ includeFile('_global_js.html', it) %>
+  <script>
+    var form = new FormValidation();
+    form.rules({
+      username: {
+        required:true,
+        message: 'Username must be alphanumeric & lowercase min 3-20 chars!',
+        minLength: 3,
+        maxLength: 20,
+        regex: /^[a-z0-9]+$/,
+        errorPlace:'username-error',
+        errorAddClass: {
+          username:'is-invalid'
+        }
+      },
+      password: {
+        required: true,
+        message: 'Password must be min 6-20 chars!',
+        minLength:6,
+        maxLength:20,
+        errorPlace:'password-error',
+        errorAddClass: {
+          password:'is-invalid'
+        }
+      }
+    });
+
+    function submitSSO(e) {
+      if(form.validate().isValid()) {
+        e.disabled = true;
+        _ajax({
+          method: 'post',
+          url: '<% it.baseUrl %>/api/user/login',
+          headers: {'content-type': 'application/json'},
+          data: {
+            username: Dom.id('username').value,
+            password: Dom.id('password').value
+          }
+        }, function(err, data) {
+          e.disabled = false;
+          if(err) return sendAlert('message', 'danger', err);
+          if(data && data.success) {
+            sendAlert('message', 'success', data.message);
+            cleanup();
+            var dt = new Date();
+            var genTime = dt.getTime();
+            var result = {
+              token: data.token,
+              generate: genTime,
+              expire: data.expire
+            };
+            storage.set(fastify_prefix+'data', result);
+            location.href = '<%=it.callback_url%>?token=' + data.token;
+          } else {
+            sendAlert('message', 'danger', data.message);
+          }
+        });
+      }
+    }
+
+    function sendOauthGoogle(username, email, fullname, gravatar) {
+      fullname = (fullname === undefined ? username : fullname);
+      gravatar = (gravatar === undefined ? null : gravatar);
+      _ajax({
+        method: 'get',
+        url: '<% it.baseUrl %>/api/oauth/request_token',
+        headers: {
+          'content-type': 'application/json',
+          'access-key': '<%=it.login_key%>'
+        }
+      }, function(err, res) {
+        if (err) return sendAlert('message', 'danger', err);;
+        if (res && res.success) {
+          _ajax({
+            method: 'post',
+            url: '<% it.baseUrl %>/api/oauth/google',
+            headers: {
+              'content-type': 'application/json',
+              'access-token': res.access_token
+            },
+            data: {
+              username: username,
+              email: email,
+              fullname: fullname,
+              gravatar: gravatar
+            }
+          }, function(err, data) {
+            if(err) return sendAlert('message', 'danger', err);
+            if(data && data.success) {
+              sendAlert('message', 'success', data.message);
+              var dt = new Date();
+              var genTime = dt.getTime();
+              var result = {
+                token: data.token,
+                generate: genTime,
+                expire: data.expire
+              };
+              storage.set(fastify_prefix+'data', result);
+              location.href = '<%=it.callback_url%>?token=' + data.token;
+            } else {
+              sendAlert('message', 'danger', data.message);
+            }
+          });
+        }
+      });
+    }
+
+    function cleanup() {
+      Dom.id('username').value = '';
+      Dom.id('password').value = '';
+    }
+
+    function continueUser() {
+      location.href = '<%=it.callback_url%>?token=' + getToken();
+    }
+
+    function changeUser() {
+      Dom.id('oauth-panel').style.display = 'block';
+      Dom.id('login-panel').style.display = 'block';
+      Dom.id('user-panel').style.display = 'none';
+      clearToken();
+    }
+
+    // on load
+    document.addEventListener('DOMContentLoaded', function () {
+      loadListener();
+    }, false);
+
+    function loadListener() {
+      if(Dom.id('username')) {
+        Dom.addListener(Dom.id('username'), Dom.Event.ON_BLUR, function(e) {
+          form.element(this.id).validate();
+        });
+      }
+      if(Dom.id('password')) {
+        Dom.addListener(Dom.id('password'), Dom.Event.ON_BLUR, function(e) {
+          form.element(this.id).validate();
+        });
+      }      
+    }
+  </script>
+  <% if(it.oauth.google.enable) { %>
+  <script>
+    // oAuth Google
+    getScript('https://accounts.google.com/gsi/client', function() {
+      google.accounts.id.initialize({
+        client_id: "<%=it.oauth.google.client_id%>",
+        callback: googleCredentialResponse
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("buttonGoogle"),
+        { theme: "outline", size: "large" }  // customization attributes
+      );
+    });
+    function googleCredentialResponse(response) {
+      var jwt = parseJWT(response.credential);
+      sendOauthGoogle(jwt.email.split('@')[0], jwt.email, jwt.name, jwt.picture);
+    }
+  </script>
+  <% } %>
+  <% if(it.valid) { %>
+    <script>
+      checkSession(function(err, status) {
+        if(err) return console.log(err);
+        if (status) {
+          Dom.id('oauth-panel').style.display = 'none';
+          Dom.id('login-panel').style.display = 'none';
+          var jwt = parseJWT(getToken());
+          Dom.id('user-username').innerHTML = (jwt.name?jwt.name:jwt.unm);
+          Dom.id('user-avatar').src=jwt.gravatar;
+          Dom.id('user-panel').style.display = 'block';
+        }
+      });
+    </script>
+  <% } %>
